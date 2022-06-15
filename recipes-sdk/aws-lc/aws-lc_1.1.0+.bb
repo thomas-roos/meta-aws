@@ -12,7 +12,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c91257e3cc0bd6026b93fb15aecf6f1c"
 BRANCH ?= "main"
 
 SRC_URI = "git://github.com/awslabs/aws-lc.git;protocol=https;branch=${BRANCH}"
-SRCREV = "038628d24feab1c4fce75c9b6a47bfa99b7c5edc"
+SRCREV = "eba80de636b910dae76367fd3977c45686ff7544"
 
 S = "${WORKDIR}/git"
 
