@@ -18,7 +18,7 @@ SRCREV = "93d85d5329be1edff43da0a974d6e890c1e84ae0"
 
 S = "${WORKDIR}/git"
 
-DEPENDS = "s2n aws-c-common aws-c-io aws-c-mqtt aws-c-auth aws-c-http aws-checksums aws-c-event-stream aws-c-s3"
+# DEPENDS = "s2n aws-c-common aws-c-io aws-c-mqtt aws-c-auth aws-c-http aws-checksums aws-c-event-stream aws-c-s3"
 RDEPENDS:${PN} = "s2n aws-c-common"
 
 CFLAGS:append = " -Wl,-Bsymbolic"
