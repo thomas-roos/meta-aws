@@ -8,12 +8,12 @@ PROVIDES += "aws/lc"
 
 inherit cmake
 
-LIC_FILES_CHKSUM = "file://LICENSE;md5=c1afc79d796415ed8191ba3258b73e3a"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=c91257e3cc0bd6026b93fb15aecf6f1c"
 
 BRANCH ?= "main"
 
 SRC_URI = "git://github.com/awslabs/aws-lc.git;protocol=https;branch=${BRANCH}"
-SRCREV = "7e7f06cae8df1c8d7d9b6c9452d17935097343de"
+SRCREV = "01ae5067a5ad942ed451a836164b2a98ebfca2ee"
 
 S = "${WORKDIR}/git"
 
@@ -24,11 +24,10 @@ EXTRA_OECMAKE += "-DBUILD_TESTING=OFF"
 EXTRA_OECMAKE += "-DDISABLE_PERL=ON"
 EXTRA_OECMAKE += "-DDISABLE_GO=ON"
 
-EXTRA_OECMAKE += "-DCMAKE_PREFIX_PATH=$D/usr/lib/aws-lc"
-EXTRA_OECMAKE += "-DCMAKE_INSTALL_PREFIX=$D/usr/lib/aws-lc"
+EXTRA_OECMAKE += "-DCMAKE_PREFIX_PATH=${libdir}/aws-lc"
+EXTRA_OECMAKE += "-DCMAKE_INSTALL_PREFIX=${libdir}/aws-lc"
 EXTRA_OECMAKE += "-DBUILD_SHARED_LIBS=ON"
-OECMAKE_BUILDPATH += "${WORKDIR}/build"
-OECMAKE_SOURCEPATH += "${S}"
+
 
 FILES:${PN}     = "${libdir}/aws-lc/lib/libssl.so \
                    ${libdir}/aws-lc/lib/libcrypto.so \
@@ -40,4 +39,3 @@ FILES:${PN}-dev = "${libdir}/aws-lc/include/openssl/* \
 FILES:${PN}-dbg = "/usr/src/debug/aws-lc/*"
 
 BBCLASSEXTEND = "native nativesdk"
-
