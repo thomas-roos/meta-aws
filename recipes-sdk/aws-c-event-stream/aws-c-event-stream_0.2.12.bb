@@ -16,9 +16,7 @@ SRC_URI = "git://github.com/awslabs/aws-c-common.git;protocol=https;branch=${BRA
            git://github.com/awslabs/aws-c-event-stream.git;protocol=https;branch=${BRANCH};destsuffix=${S}/aws-c-event-stream;name=es \
 "
 
-SRCREV_FORMAT = "es"
-SRCREV_es = "e87537be561d753ec82e783bc0929b1979c585f8"
-SRCREV_common = "2a28532d6f13435907ae200a5aea449c01e79149"
+SRCREV = "158d8e9c0c4684a218c0309ffe80f7ff765c3f1e"
 
 S = "${WORKDIR}/git"
 
