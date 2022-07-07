@@ -12,8 +12,11 @@ SDIR ?= "amazon-kvs-producer-pic"
 
 LIC_FILES_CHKSUM = "file://${SDIR}/LICENSE;md5=34400b68072d710fecd0a2940a0d1658"
 
-SRC_URI = "git://github.com/awslabs/amazon-kinesis-video-streams-pic.git;protocol=https;branch=${BRANCH};destsuffix=${S}/${SDIR}"
-SRCREV = "89a999684658da4e75e465dd601b4d56f4d91025"
+SRC_URI = "git://github.com/awslabs/amazon-kinesis-video-streams-pic.git;protocol=https;branch=${BRANCH}"
+
+# this project do not use version tags, use latest commit
+UPSTREAM_CHECK_COMMITS = "1"
+SRCREV = "afc15aff555090424d6b92ef316116e85004a479"
 
 S = "${WORKDIR}/git"
 
