@@ -1,21 +1,32 @@
+From 489a2e58d994845dd09311d95604264a9c30982b Mon Sep 17 00:00:00 2001
+From: rpcme <rich@richelberger.com>
+Date: Wed, 2 Jun 2021 18:46:28 -0400
+Subject: [PATCH] overcome build break due to GCC 11.1 add that exposed
+
+---
+ CMakeLists.txt | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a93d51f5..dbead898 100755
+index 3a0d3ea1..12d1c6b6 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -171,13 +171,21 @@ file(GLOB S2N_SRC
+@@ -347,14 +347,22 @@ file(GLOB S2N_SRC
  )
  
  add_library(${PROJECT_NAME} ${S2N_HEADERS} ${S2N_SRC})
 -set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
  
 -set(CMAKE_C_FLAGS_DEBUGOPT "")
+ 
+-target_compile_options(${PROJECT_NAME} PRIVATE -pedantic -std=gnu99 -Wall -Wimplicit -Wunused -Wcomment -Wchar-subscripts
+-        -Wuninitialized -Wshadow -Wcast-align -Wwrite-strings -Wno-deprecated-declarations -Wno-unknown-pragmas -Wformat-security
+-        -Wno-missing-braces -Wa,--noexecstack
+-)
 +set_target_properties(${PROJECT_NAME}
 +                      PROPERTIES LINKER_LANGUAGE C
 +                                 C_STANDARD 99 )
- 
--target_compile_options(${PROJECT_NAME} PRIVATE -pedantic -std=gnu99 -Wall -Werror -Wimplicit -Wunused -Wcomment -Wchar-subscripts
--        -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wwrite-strings -Wno-deprecated-declarations -Wno-unknown-pragmas -Wformat-security
--        -Wno-missing-braces -fvisibility=hidden -DS2N_EXPORTS)
++
 +target_compile_options(${PROJECT_NAME} PRIVATE -Wa,--noexecstack -DS2N_EXPORTS)
 +
 +#set extra warning flags for debug build
@@ -27,5 +38,5 @@ index a93d51f5..dbead898 100755
 +    target_compile_options(${PROJECT_NAME} PRIVATE -Wformat-security -Wno-missing-braces )
 +endif ()
  
- if(S2N_NO_PQ)
-     target_compile_options(${PROJECT_NAME} PUBLIC -DS2N_NO_PQ)
+ if (UNSAFE_TREAT_WARNINGS_AS_ERRORS)
+     target_compile_options(${PROJECT_NAME} PRIVATE -Werror )
