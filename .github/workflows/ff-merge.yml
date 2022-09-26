@@ -3,10 +3,10 @@ name: ff-merge
 on:
   workflow_dispatch:
       inputs:
-      branch:
-        description: 'branch to ff merge into'
-        default: 'master'
-        required: true
+        branch:
+          description: 'branch to ff merge into'
+          default: 'master'
+          required: true
 
 jobs:
   build:
