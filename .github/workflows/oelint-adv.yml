@@ -28,6 +28,9 @@ jobs:
       - name: get changed files
         id: changes       
         run: |
+          pwd
+          ls -la
+          cd meta-aws
           echo "::set-output name=all::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
           echo "::set-output name=bb::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .bb | xargs)"
       - name: run oelint_adv
