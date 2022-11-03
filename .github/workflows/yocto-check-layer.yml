@@ -3,16 +3,12 @@ name: yocto-check-layer
 on:
   pull_request:
     branches:
-      - master-next
+      - '*-next'
 
 jobs:
   check:
     runs-on: ubuntu-20.04
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
       - name: get yocto release name
         id: get-yocto-release-name
         run: |
@@ -26,16 +22,26 @@ jobs:
       - name: checkout meta-aws branch to test
         uses: actions/checkout@v3
         with:
-          path: yocto_checklayer          
+          path: yocto_checklayer
+      - name: checkout meta-oe
+        uses: actions/checkout@v3
+        with:
+          repository: https://github.com/openembedded/meta-openembedded.git
+          path: yocto_checklayer
+          ref: ${{steps.get-yocto-release-name.outputs.release_name}}
+      - name: checkout poky
+        uses: actions/checkout@v3
+        with:
+          repository: git://git.yoctoproject.org/poky
+          path: yocto_checklayer
+          ref: ${{steps.get-yocto-release-name.outputs.release_name}}          
       - name: run yocto-check-layer
         run: |
-          cd yocto_checklayer/
-          git clone git://git.yoctoproject.org/poky --single-branch -b ${{steps.get-yocto-release-name.outputs.release_name}}        
-          git clone https://github.com/openembedded/meta-openembedded.git --single-branch -b ${{steps.get-yocto-release-name.outputs.release_name}}
+          cd yocto_checklayer/         
           source poky/oe-init-build-env build
-          yocto-check-layer ../meta-aws/ --dependency ../meta-openembedded/meta-oe/ ../meta-openembedded/meta-python/  ../meta-openembedded/meta-networking --output-log ycl-check_meta-aws.log --debug --no-auto --no-auto-dependency --help
+          yocto-check-layer ../meta-aws/ --dependency ../meta-openembedded/meta-oe/ ../meta-openembedded/meta-python/  ../meta-openembedded/meta-networking --output-log ycl-check_meta-aws.log --debug --no-auto --no-auto-dependency
           touch ycl-check_meta-aws.log
-      - name: save ycl-check_meta-aws.log
+      - name: save test result
         uses: actions/upload-artifact@v3.1.1
         with:
           name: ycl-check_meta-aws
