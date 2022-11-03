@@ -22,22 +22,16 @@ jobs:
           
       - name: checkout meta-aws branch to test
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
  
-      - name: get changed bb files
-        id: changed-files-specific
-        uses: tj-actions/changed-files@v34
-        
-      - name: print bb file(s) changed
-        if: steps.changed-files-specific.outputs.any_changed == 'true'
+      - name: get changed files
+        id: changes       
         run: |
-          echo "changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"        
-        
+          echo "::set-output name=all::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
+          echo "::set-output name=bb::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .bb | xargs)"
       - name: run oelint_adv
-        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        if: ${{needs.changedfiles.outputs.bb}}
         run: |
-          oelint-adv --output result.log ${{ steps.changed-files-specific.outputs.all_changed_files }}
+          oelint-adv --output result.log ${{needs.changedfiles.outputs.bb}}
           
       - name: save test result
         if: steps.changed-files-specific.outputs.any_changed == 'true'
