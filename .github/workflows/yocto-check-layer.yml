@@ -13,6 +13,7 @@ jobs:
         id: get-yocto-release-name
         run: |
             release_name=$(echo ${{github.event.pull_request.base.ref}} | cut -d- -f1)
+            #this is deprecated, but replacement does not seem to work now?
             echo "::set-output name=release_name::$release_name"
       - name: install required packages to run yocto-check-layer
         run: | 
@@ -22,12 +23,12 @@ jobs:
       - name: checkout meta-aws branch to test
         uses: actions/checkout@v3
         with:
-          path: yocto_checklayer
+          path: yocto_checklayer/
       - name: checkout meta-oe
         uses: actions/checkout@v3
         with:
           repository: openembedded/meta-openembedded
-          path: yocto_checklayer
+          path: yocto_checklayer/
           ref: ${{steps.get-yocto-release-name.outputs.release_name}}
       - name: checkout poky
         run: |
@@ -35,10 +36,10 @@ jobs:
           git clone git://git.yoctoproject.org/poky --single-branch -b ${{steps.get-yocto-release-name.outputs.release_name}}
       - name: run yocto-check-layer
         run: |
-          cd yocto_checklayer/         
+          cd yocto_checklayer/
+          ls -la
           source poky/oe-init-build-env build
           yocto-check-layer ../meta-aws/ --dependency ../meta-openembedded/meta-oe/ ../meta-openembedded/meta-python/  ../meta-openembedded/meta-networking --output-log ycl-check_meta-aws.log --debug --no-auto --no-auto-dependency
-          touch ycl-check_meta-aws.log
       - name: save test result
         uses: actions/upload-artifact@v3.1.1
         with:
