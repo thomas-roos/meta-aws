@@ -26,15 +26,13 @@ jobs:
       - name: checkout meta-oe
         uses: actions/checkout@v3
         with:
-          repository: https://github.com/openembedded/meta-openembedded.git
+          repository: openembedded/meta-openembedded
           path: yocto_checklayer
           ref: ${{steps.get-yocto-release-name.outputs.release_name}}
       - name: checkout poky
-        uses: actions/checkout@v3
-        with:
-          repository: git://git.yoctoproject.org/poky
-          path: yocto_checklayer
-          ref: ${{steps.get-yocto-release-name.outputs.release_name}}          
+        run: |
+          cd yocto_checklayer/
+          git clone git://git.yoctoproject.org/poky --single-branch -b ${{steps.get-yocto-release-name.outputs.release_name}}
       - name: run yocto-check-layer
         run: |
           cd yocto_checklayer/         
