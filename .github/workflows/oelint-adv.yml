@@ -1,0 +1,49 @@
+name: yocto-check-layer
+
+on:
+  pull_request:
+    branches:
+      - '*-next'
+
+jobs:
+  check:
+    runs-on: ubuntu-20.04
+    env:
+      PYTHONIOENCODING: utf8
+      LC_ALL: en_US.UTF-8
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US.UTF-8
+      
+    steps:
+      - name: install required packages to run oelint_adv
+        run: | 
+          sudo apt-get -y install locales python3-pip
+          sudo pip3 install oelint_adv
+          
+      - name: checkout meta-aws branch to test
+        uses: actions/checkout@v3
+ 
+      - name: get changed bb files
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v34
+        with:
+          files: |
+            /**.bb
+
+      - name: print bb file(s) changed
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        run: |
+          echo "changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"        
+        
+      - name: run oelint_adv
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        run: |
+          oelint-adv  meta-aws/recipes-sdk/aws-crt-python/aws-crt-python_0.15.2.bb --output result.log
+          
+      - name: save test result
+        if: steps.changed-files-specific.outputs.any_changed == 'true'
+        uses: actions/upload-artifact@v3.1.1
+        with:
+          name: oelint_adv_meta-aws
+          path: result.log
+
