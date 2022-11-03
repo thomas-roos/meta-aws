@@ -9,12 +9,16 @@ jobs:
   check:
     runs-on: ubuntu-20.04
     steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
       - name: get yocto release name
         id: get-yocto-release-name
         uses: actions/github-script@v6.3.3
         with:
           script: |
-            const release_name = github.event.pull_request.base.ref.split('-')[1]
+            const release_name = github.event.pull_request.base.ref.value.split('-')[1]
             core.setOutput('release_name', release_name)
       - name: install required packages to run yocto-check-layer
         run: | 
