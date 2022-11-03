@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: get yocto release name
         id: get-yocto-release-name
-        uses: actions/github-script@0.9.0
+        uses: actions/github-script@v6.3.3
         with:
           script: |
             const release_name = github.event.pull_request.base.ref.split('-')[1]
