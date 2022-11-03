@@ -28,12 +28,12 @@ jobs:
       - name: run oelint_adv      
         if: ${{steps.changes.outputs.bb}}
         run: |
+          set +e
           oelint-adv --output result.log ${{steps.changes.outputs.bb}}
+          touch result.log
           
       - name: save test result
-        if: | 
-          ${{steps.changes.outputs.bb}} &&
-          (success() || failure())
+        if: success() || failure()
         uses: actions/upload-artifact@v3.1.1
         with:
           name: oelint_adv_meta-aws
