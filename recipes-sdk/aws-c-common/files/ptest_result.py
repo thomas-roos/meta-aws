@@ -11,5 +11,5 @@ if len(sys.argv) != 2:
 tree = ET.parse(sys.argv[1])
 
 for child in tree.getroot():
-    result = 'PASS' if child.attrib['status'] == 'run' else 'FAIL'
+    result = 'FAIL' if child.attrib['status'] == 'run' else 'PASS'
     print(f"{result} {child.attrib['name']}")
