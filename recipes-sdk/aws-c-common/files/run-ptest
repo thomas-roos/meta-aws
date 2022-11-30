@@ -3,4 +3,5 @@
 # SPDX-License-Identifier: MIT
 
 ctest --test-dir build/tests/ --output-junit result.xml
-python3 ptest_result.py build/tests/result.xml 
+python3 ptest_result.py build/tests/result.xml
+exit 1
