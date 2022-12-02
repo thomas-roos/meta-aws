@@ -1,4 +1,3 @@
-# -*- mode: Conf; -*-
 SUMMARY     = "AWS IoT Greengrass Nucleus - Binary Distribution"
 DESCRIPTION = ""
 LICENSE     = "Apache-2.0"
