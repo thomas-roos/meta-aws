@@ -41,6 +41,8 @@ FILES:${PN}-dbg = "/usr/src/debug/aws-c-common/* \
 
 RDEPENDS:${PN}-ptest += "cmake python3"
 
+RDEPENDS:${PN} += "systemd-boot"
+
 do_install_ptest() {
     install -d ${D}${PTEST_PATH}/tests
 
