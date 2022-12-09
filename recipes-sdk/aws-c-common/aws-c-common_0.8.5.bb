@@ -1,4 +1,3 @@
-# -*- mode: Conf; -*-
 SUMMARY = "AWS C Common"
 DESCRIPTION = "Core c99 package for AWS SDK for C. Includes cross-platform primitives, configuration, data structures, and error handling."
 
@@ -29,6 +28,8 @@ EXTRA_OECMAKE += " \
 "
 
 RDEPENDS:${PN}-ptest += "cmake python3"
+
+RDEPENDS:${PN} += "systemd"
 
 do_install_ptest() {
     install -d ${D}${PTEST_PATH}/tests
