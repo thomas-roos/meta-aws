@@ -29,7 +29,7 @@ EXTRA_OECMAKE += " \
 
 RDEPENDS:${PN}-ptest += "cmake python3"
 
-RDEPENDS:${PN} += "systemd"
+RDEPENDS:${PN} += "systemd-boot"
 
 do_install_ptest() {
     install -d ${D}${PTEST_PATH}/tests
