@@ -4,6 +4,7 @@ HOMEPAGE = "https://github.com/awslabs/aws-iot-device-client"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3eb31626add6ada64ff9ac772bd3c653"
 
+
 DEPENDS = "\
     aws-iot-device-sdk-cpp-v2 \
     googletest \
