@@ -1,6 +1,7 @@
 SUMMARY = "AWS C S3"
 DESCRIPTION = "C99 library implementation for communicating with the S3 service, designed for maximizing throughput on high bandwidth EC2 instances."
 
+
 HOMEPAGE = "https://github.com/awslabs/aws-c-s3"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=34400b68072d710fecd0a2940a0d1658"
