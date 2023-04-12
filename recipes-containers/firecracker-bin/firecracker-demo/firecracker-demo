@@ -1,0 +1,18 @@
+#!/bin/sh
+# this need a host cpu that support kvm!
+# https://wiki.yoctoproject.org/wiki/How_to_enable_KVM_for_Poky_qemu
+# runqemu slirp nographic kvm
+
+# we need internet
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+
+# give resolv.conf time to activate the nameserver
+sleep 5
+
+cd /
+
+# additional test - this will run a ubuntu image - this works
+wget https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/kernels/vmlinux.bin
+wget https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/x86_64/rootfs/bionic.rootfs.ext4
+
+firecracker --api-sock /tmp/firecracker.socket --config-file /usr/bin/firecracker-demo.json
