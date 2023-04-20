@@ -11,10 +11,10 @@ if [ $ARGC -lt 2 ]; then
 fi
 IMPORT_BUCKET_NAME=$1
 AMI_DISK_SIZE_GB=$2
-DISTRO_ARCHITECTURE=${3:-"baremetal"} 
 
-IMG_DIR="build/tmp_$DISTRO_ARCHITECTURE/deploy/images/generic-arm64"
-TESTDATA_JSON="${IMG_DIR}/ewaol-$DISTRO_ARCHITECTURE-image-generic-arm64.testdata.json"
+IMG_DIR="build/tmp/deploy/images/aws-ec2-graviton"
+
+TESTDATA_JSON="${IMG_DIR}/ami-test-image-aws-ec2-graviton.testdata.json"
 
 DISTRO=$(jq -r '.DISTRO' $TESTDATA_JSON)
 DISTRO_CODENAME=$(jq -r '.DISTRO_CODENAME' $TESTDATA_JSON)
@@ -30,7 +30,6 @@ echo DISTRO=$DISTRO
 echo DISTRO_CODENAME=$DISTRO_CODENAME
 echo DISTRO_NAME=$DISTRO_NAME
 echo DISTRO_VERSION=$DISTRO_VERSION
-echo DISTRO_ARCHITECTURE=$DISTRO_ARCHITECTURE
 echo BUILDNAME=$BUILDNAME
 echo BUILD_ARCH=$BUILD_ARCH
 echo IMAGE_ROOTFS_SIZE=$IMAGE_ROOTFS_SIZE
@@ -42,7 +41,7 @@ qemu-img convert -f vhdx -O raw ${IMG_DIR}/${IMAGE_NAME}.rootfs.wic.vhdx ${IMG_D
 echo "Pushing image ${IMAGE_NAME}.rootfs.raw to s3://${IMPORT_BUCKET_NAME}"
 aws s3 cp ${IMG_DIR}/${IMAGE_NAME}.rootfs.raw s3://${IMPORT_BUCKET_NAME}
 
-cat <<EOF > ewaol-import.json
+cat <<EOF > image-import.json
 {
     "Description": "ewaol docker image",
     "Format": "raw",
@@ -53,11 +52,11 @@ cat <<EOF > ewaol-import.json
 }
 EOF
 echo "Importing image file into snapshot "
-IMPORT_TASK_ID=$(aws ec2 import-snapshot --disk-container "file://ewaol-import.json" | jq -r '.ImportTaskId')
+IMPORT_TASK_ID=$(aws ec2 import-snapshot --disk-container "file://image-import.json" | jq -r '.ImportTaskId')
 
 IMPORT_STATUS=$(aws ec2 describe-import-snapshot-tasks --import-task-ids $IMPORT_TASK_ID | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Status')
 x=0
-rm ewaol-import.json
+rm image-import.json
 while [ "$IMPORT_STATUS" = "active" ] && [ $x -lt 120 ]
 do
   IMPORT_STATUS=$(aws ec2 describe-import-snapshot-tasks --import-task-ids $IMPORT_TASK_ID | jq -r '.ImportSnapshotTasks[].SnapshotTaskDetail.Status')
@@ -78,7 +77,7 @@ SNAPSHOT_ID=$(aws ec2 describe-import-snapshot-tasks --import-task-ids $IMPORT_T
 
 aws ec2 wait snapshot-completed --snapshot-ids $SNAPSHOT_ID
 
-cat <<EOF > ewaol-register-ami.json
+cat <<EOF > register-ami.json
 {
     "Architecture": "arm64",
     "BlockDeviceMappings": [
@@ -92,7 +91,7 @@ cat <<EOF > ewaol-register-ami.json
             }
         }
     ],
-    "Description": "DISTRO=$DISTRO;DISTRO_CODENAME=$DISTRO_CODENAME;DISTRO_NAME=$DISTRO_NAME;DISTRO_VERSION=$DISTRO_VERSION;DISTRO_ARCHITECTURE=$DISTRO_ARCHITECTURE;BUILDNAME=$BUILDNAME;BUILD_ARCH=$BUILD_ARCH",
+    "Description": "DISTRO=$DISTRO;DISTRO_CODENAME=$DISTRO_CODENAME;DISTRO_NAME=$DISTRO_NAME;DISTRO_VERSION=$DISTRO_VERSION;BUILDNAME=$BUILDNAME;BUILD_ARCH=$BUILD_ARCH",
     "RootDeviceName": "/dev/sda1",
     "BootMode": "uefi",
     "VirtualizationType": "hvm",
@@ -100,15 +99,15 @@ cat <<EOF > ewaol-register-ami.json
 }
 EOF
 
-AMI_NAME="${DISTRO}-${DISTRO_ARCHITECTURE}-${DISTRO_CODENAME}-${DISTRO_VERSION}-${BUILDNAME}-${BUILD_ARCH}"
+AMI_NAME="${DISTRO}-${DISTRO_CODENAME}-${DISTRO_VERSION}-${BUILDNAME}-${BUILD_ARCH}"
 IMAGE_ID=$(aws ec2 describe-images --filters Name=name,Values=${AMI_NAME} | jq -r '.Images[].ImageId')
 if [ "$IMAGE_ID" != "" ]; then
     echo "Deregistering existing image $IMAGE_ID"
     aws ec2 deregister-image --image-id ${IMAGE_ID} 2>&1 > /dev/null
 fi
 echo "Registering AMI with Snapshot $SNAPSHOT_ID"
-AMI_ID=$(aws ec2 register-image --name ${AMI_NAME} --cli-input-json="file://ewaol-register-ami.json" | jq -r '.ImageId')
+AMI_ID=$(aws ec2 register-image --name ${AMI_NAME} --cli-input-json="file://register-ami.json" | jq -r '.ImageId')
 echo "AMI name: $AMI_NAME"
 echo "AMI ID: $AMI_ID"
-rm ewaol-register-ami.json
+rm register-ami.json
 

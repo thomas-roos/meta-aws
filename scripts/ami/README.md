@@ -1,5 +1,6 @@
 # The meta-aws-ewaol repository
-This repository provides the example code and instructions for building a customized [Edge Workload Abstraction and Orchestration Layer](https://ewaol.sites.arm.com/meta-ewaol/overview.html) (EWAOL) distribution in form of an [Amazon Machine Image](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) (AMI). 
+The AMI feature was taken from [meta-aws-ewaol](https://github.com/aws4embeddedlinux/meta-aws-ewaol)
+ form of an [Amazon Machine Image](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) (AMI). 
 
 ![minimal suggested infrastructure](graphics/meta-aws-ewaol.png)
 
