@@ -1,7 +1,7 @@
-FILESEXTRAPATHS:prepend:aws-ec2-graviton := "${THISDIR}/files:"
+FILESEXTRAPATHS:prepend:aws-ec2 := "${THISDIR}/files:"
 
-COMPATIBLE_MACHINE:aws-ec2-graviton = "aws-ec2-graviton"
+COMPATIBLE_MACHINE:aws-ec2 = "aws-ec2"
 
-SRC_URI:append:aws-ec2-graviton = "\
-    file://gravitonKernelConfigs.cfg \
+SRC_URI:append:aws-ec2 = "\
+    file://aws-ec2.cfg \
     "

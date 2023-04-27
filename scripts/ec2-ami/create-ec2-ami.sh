@@ -5,23 +5,26 @@ set -e
 [ "$DEBUG" == 'true' ] && set -x
 
 ARGC=$#
-if [ $ARGC -lt 2 ]; then
-    echo "ERROR: Please inform import bucket name as first argument and AMI disk size in GB as second"
+if [ $ARGC -lt 3 ]; then
+    echo "ERROR: Please inform import bucket name as first argument and AMI disk size in GB as second, IMAGE_NAME as third and MACHINE_NAME as last."
     exit 1
 fi
 IMPORT_BUCKET_NAME=$1
 AMI_DISK_SIZE_GB=$2
+IMAGE_NAME=$3
+MACHINE_NAME=$4
 
-IMG_DIR="build/tmp/deploy/images/aws-ec2-graviton"
 
-TESTDATA_JSON="${IMG_DIR}/ami-test-image-aws-ec2-graviton.testdata.json"
+IMG_DIR="build/tmp/deploy/images/${MACHINE_NAME}"
+
+TESTDATA_JSON="${IMG_DIR}/${IMAGE_NAME}-${MACHINE_NAME}.testdata.json"
 
 DISTRO=$(jq -r '.DISTRO' $TESTDATA_JSON)
 DISTRO_CODENAME=$(jq -r '.DISTRO_CODENAME' $TESTDATA_JSON)
 DISTRO_NAME=$(jq -r '.DISTRO_NAME' $TESTDATA_JSON)
 DISTRO_VERSION=$(jq -r '.DISTRO_VERSION' $TESTDATA_JSON)
 BUILDNAME=$(jq -r '.BUILDNAME' $TESTDATA_JSON)
-BUILD_ARCH=$(jq -r '.BUILD_ARCH' $TESTDATA_JSON)
+TARGET_ARCH=$(jq -r '.TARGET_ARCH' $TESTDATA_JSON)
 IMAGE_NAME=$(jq -r '.IMAGE_NAME' $TESTDATA_JSON)
 IMAGE_ROOTFS_SIZE=$(jq -r '.IMAGE_ROOTFS_SIZE' $TESTDATA_JSON)
 
@@ -31,7 +34,7 @@ echo DISTRO_CODENAME=$DISTRO_CODENAME
 echo DISTRO_NAME=$DISTRO_NAME
 echo DISTRO_VERSION=$DISTRO_VERSION
 echo BUILDNAME=$BUILDNAME
-echo BUILD_ARCH=$BUILD_ARCH
+echo TARGET_ARCH=$TARGET_ARCH
 echo IMAGE_ROOTFS_SIZE=$IMAGE_ROOTFS_SIZE
 echo AMI_DISK_SIZE_GB=$AMI_DISK_SIZE_GB
 
@@ -77,9 +80,18 @@ SNAPSHOT_ID=$(aws ec2 describe-import-snapshot-tasks --import-task-ids $IMPORT_T
 
 aws ec2 wait snapshot-completed --snapshot-ids $SNAPSHOT_ID
 
+if [[ "$TARGET_ARCH" == "x86_64" ]]; then
+    ARCHITECTURE="x86_64"
+elif [[ "$TARGET_ARCH" == "aarch64" ]]; then
+    ARCHITECTURE="arm64"
+else
+    echo "Architecture not supported"
+    exit 1
+fi
+
 cat <<EOF > register-ami.json
 {
-    "Architecture": "arm64",
+    "Architecture": "$ARCHITECTURE",
     "BlockDeviceMappings": [
         {
             "DeviceName": "/dev/sda1",
@@ -91,7 +103,7 @@ cat <<EOF > register-ami.json
             }
         }
     ],
-    "Description": "DISTRO=$DISTRO;DISTRO_CODENAME=$DISTRO_CODENAME;DISTRO_NAME=$DISTRO_NAME;DISTRO_VERSION=$DISTRO_VERSION;BUILDNAME=$BUILDNAME;BUILD_ARCH=$BUILD_ARCH",
+    "Description": "DISTRO=$DISTRO;DISTRO_CODENAME=$DISTRO_CODENAME;DISTRO_NAME=$DISTRO_NAME;DISTRO_VERSION=$DISTRO_VERSION;BUILDNAME=$BUILDNAME;TARGET_ARCH=$ARCHITECTURE;IMAGE_NAME=$IMAGE_NAME",
     "RootDeviceName": "/dev/sda1",
     "BootMode": "uefi",
     "VirtualizationType": "hvm",
@@ -99,7 +111,7 @@ cat <<EOF > register-ami.json
 }
 EOF
 
-AMI_NAME="${DISTRO}-${DISTRO_CODENAME}-${DISTRO_VERSION}-${BUILDNAME}-${BUILD_ARCH}"
+AMI_NAME="${IMAGE_NAME}-${DISTRO}-${DISTRO_CODENAME}-${DISTRO_VERSION}-${BUILDNAME}-${ARCHITECTURE}"
 IMAGE_ID=$(aws ec2 describe-images --filters Name=name,Values=${AMI_NAME} | jq -r '.Images[].ImageId')
 if [ "$IMAGE_ID" != "" ]; then
     echo "Deregistering existing image $IMAGE_ID"
