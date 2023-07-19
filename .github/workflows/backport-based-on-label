@@ -14,8 +14,7 @@ jobs:
     # or when a comment containing `/backport` is created by someone other than the 
     # https://github.com/backport-action bot user (user id: 97796249). Note that if you use your
     # own PAT as `github_token`, that you should replace this id with yours.
-    if: github.event.pull_request.merged &&
-        contains(github.event.pull_request.labels.*.name, 'backport')
+    if: contains(github.event.pull_request.labels.*.name, 'backport')
     steps:
       - uses: actions/checkout@v3
         with:
