@@ -1,7 +1,7 @@
 name: Backport merged pull request
 on:
-  issue_comment:
-    types: [created]
+  pull_request_target:
+    types: [closed]
 permissions:
   contents: write # so it can comment
   pull-requests: write # so it can create pull requests
@@ -16,10 +16,8 @@ jobs:
     # own PAT as `github_token`, that you should replace this id with yours.
     if: >
       (
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        contains(github.event.pull_request.labels.*.name, 'backport') &&
-        contains(github.event.comment.body, '/backport')
+        github.event.pull_request.merged &&
+        contains(github.event.pull_request.labels.*.name, 'backport')
       )
     steps:
       - uses: actions/checkout@v3
