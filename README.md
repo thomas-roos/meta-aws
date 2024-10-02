@@ -6,8 +6,6 @@
 src="images/lf_yp_plat.png"></td>
 <td width="150" height="150"><img alt="Yocto Project Layer Compatible"
 src="images/LF_17_02_Yocto-Badge-Update_Compatible_Final_Blank.png"></td>
-<td width="150" height="150"><img alt="Automotive Grade Linux Platinum Member"
-src="images/agl-member-plat.png"></td>
 </tr>
 </table>
 
@@ -20,6 +18,11 @@ Please check out [our sister project meta-aws-demos](https://github.com/aws-samp
 We are supporting customers building solutions on AWS with meta-aws. Let us know if you need AWS device software for a specific Yocto Project release and we will work with you through Github Issues to resolve the challenge you might be facing.  We also encourage [contributions](CONTRIBUTING.md) by the community.
 We are yocto project compatible<a href="https://www.yoctoproject.org/software-overview/layers/?searchTerm=meta-aws" target="none" title="What is this?">(?)</a>.
 Currently maintained releases are all [NOT-EOL ones](https://wiki.yoctoproject.org/wiki/Releases). All prior releases will be handled on a case by case basis. Again, please let us know if you're in a crunch on earlier releases and we'll help you the best we can!
+
+### CVE checks
+We do nightly CVE checks on the master branch for every recipe in our layer. You can see those check results here:
+
+[![nightly-cve-check](https://github.com/aws4embeddedlinux/meta-aws/actions/workflows/nightly-cve-check.yml/badge.svg?branch=master)](https://github.com/aws4embeddedlinux/meta-aws/actions/workflows/nightly-cve-check.yml)
 
 ### Dependencies
 
@@ -56,8 +59,8 @@ These are the currently supported services, software, and SDKs you can use to bu
 |<center>![Image of AWS IoT Device SDK Icon](images/Arch_AWS-Tools-and-SDKs_64.png)</br>AWS IoT Device SDK for Python v2|The AWS IoT Device SDK for Python makes it possible for developers to write Python scripts to use their devices to access the AWS IoT platform through MQTT or MQTT over the WebSocket protocol. By connecting their devices to AWS IoT, users can securely work with the message broker, rules, and shadows provided by AWS IoT and with other AWS services like AWS Lambda, Kinesis, and Amazon S3, and more.|
 |<center>![Image of AWS Firecracker Icon](images/Arch_AWS-Firecracker.png)</br>AWS Firecracker|AWS Firecracker Firecracker enables you to deploy workloads in lightweight virtual machines, called microVMs, which provide enhanced security and workload isolation over traditional VMs, while enabling the speed and resource efficiency of containers.|
 
-**IMPORTANT NOTES**: 
+**IMPORTANT NOTES**:
 
 * Automotive Grade Linux: The AGL distribution uses a specific static ID process. When adding AWS IoT Greengrass, you will need to define users in the passwd and group files manually. Please see https://github.com/aws/meta-aws/issues/75 for more information.
 
-© 2019-2023, Amazon Web Services, Inc. or its affiliates. All rights reserved.
+© 2019-2024, Amazon Web Services, Inc. or its affiliates. All rights reserved.

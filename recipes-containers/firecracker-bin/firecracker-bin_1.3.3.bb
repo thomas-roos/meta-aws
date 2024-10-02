@@ -1,9 +1,10 @@
 SUMMARY = "firecracker - Binary Distribution"
 DESCRIPTION = "Secure and fast microVMs for serverless computing."
 HOMEPAGE = "https://firecracker-microvm.github.io/"
+CVE_PRODUCT = "firecracker"
 LICENSE = "Apache-2.0"
 # nooelint: oelint.var.licenseremotefile:License-File
-LIC_FILES_CHKSUM = "file://${S}/release-v${PV}-${TARGET_ARCH}/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
+LIC_FILES_CHKSUM = "file://${WORKDIR}/${PN}/release-v${PV}-${TARGET_ARCH}/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
 ARCH_DIR:x86-64 = "x86_64"
 ARCH_DIR:aarch64 = "aarch64"
@@ -44,3 +45,5 @@ do_install() {
     install -m 0755 ${S}/release-v${PV}-${TARGET_ARCH}/firecracker-v${PV}-${TARGET_ARCH} ${D}${bindir}/firecracker
 }
 
+# https://bugzilla.yoctoproject.org/show_bug.cgi?id=15227
+PACKAGE_DEPENDS:append:class-target = " virtual/${TARGET_PREFIX}binutils"

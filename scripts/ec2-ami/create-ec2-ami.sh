@@ -7,6 +7,8 @@ set -e
 ARGC=$#
 if [ $ARGC -lt 3 ]; then
     echo "ERROR: Please inform import bucket name as first argument and AMI disk size in GB as second, IMAGE_NAME as third and MACHINE_NAME as last."
+    echo "E.g.:"
+    echo "$0 my-test-bucket 4 core-image-minimal aws-ec2-arm64"
     exit 1
 fi
 IMPORT_BUCKET_NAME=$1
@@ -14,10 +16,17 @@ AMI_DISK_SIZE_GB=$2
 IMAGE_NAME=$3
 MACHINE_NAME=$4
 
+# validation steps
+# AMI_DISK_SIZE_GB
+re='^[0-9]+$'
+if ! [[ $AMI_DISK_SIZE_GB =~ $re ]] ; then
+    echo "AMI_DISK_SIZE needs to be a number only without unit. E.g. '4'." >&2
+    exit 1
+fi
 
-IMG_DIR="build/tmp/deploy/images/${MACHINE_NAME}"
+IMG_DIR=$(bitbake-getvar --value -q  DEPLOY_DIR_IMAGE)
 
-TESTDATA_JSON="${IMG_DIR}/${IMAGE_NAME}-${MACHINE_NAME}.testdata.json"
+TESTDATA_JSON="${IMG_DIR}/${IMAGE_NAME}-${MACHINE_NAME}.rootfs.testdata.json"
 
 DISTRO=$(jq -r '.DISTRO' $TESTDATA_JSON)
 DISTRO_CODENAME=$(jq -r '.DISTRO_CODENAME' $TESTDATA_JSON)
@@ -28,7 +37,7 @@ TARGET_ARCH=$(jq -r '.TARGET_ARCH' $TESTDATA_JSON)
 IMAGE_NAME=$(jq -r '.IMAGE_NAME' $TESTDATA_JSON)
 IMAGE_ROOTFS_SIZE=$(jq -r '.IMAGE_ROOTFS_SIZE' $TESTDATA_JSON)
 
-
+echo IMG_DIR=$IMG_DIR
 echo DISTRO=$DISTRO
 echo DISTRO_CODENAME=$DISTRO_CODENAME
 echo DISTRO_NAME=$DISTRO_NAME
@@ -38,19 +47,16 @@ echo TARGET_ARCH=$TARGET_ARCH
 echo IMAGE_ROOTFS_SIZE=$IMAGE_ROOTFS_SIZE
 echo AMI_DISK_SIZE_GB=$AMI_DISK_SIZE_GB
 
-echo "Converting ${IMAGE_NAME}.rootfs.wic.vhdx to raw format"
-qemu-img convert -f vhdx -O raw ${IMG_DIR}/${IMAGE_NAME}.rootfs.wic.vhdx ${IMG_DIR}/${IMAGE_NAME}.rootfs.raw
-
-echo "Pushing image ${IMAGE_NAME}.rootfs.raw to s3://${IMPORT_BUCKET_NAME}"
-aws s3 cp ${IMG_DIR}/${IMAGE_NAME}.rootfs.raw s3://${IMPORT_BUCKET_NAME}
+echo "Pushing image ${IMAGE_NAME}.wic.vhd to s3://${IMPORT_BUCKET_NAME}"
+aws s3 cp ${IMG_DIR}/${IMAGE_NAME}.wic.vhd s3://${IMPORT_BUCKET_NAME}
 
 cat <<EOF > image-import.json
 {
     "Description": "ewaol docker image",
-    "Format": "raw",
+    "Format": "vhd",
     "UserBucket": {
         "S3Bucket": "${IMPORT_BUCKET_NAME}",
-        "S3Key": "${IMAGE_NAME}.rootfs.raw"
+        "S3Key": "${IMAGE_NAME}.wic.vhd"
     }
 }
 EOF
@@ -88,6 +94,7 @@ else
     echo "Architecture not supported"
     exit 1
 fi
+DESCRIPTION=$(echo "DISTRO=$DISTRO;DISTRO_CODENAME=$DISTRO_CODENAME;DISTRO_NAME=$DISTRO_NAME;DISTRO_VERSION=$DISTRO_VERSION;BUILDNAME=$BUILDNAME;TARGET_ARCH=$ARCHITECTURE;IMAGE_NAME=$IMAGE_NAME" | cut -c -255)
 
 cat <<EOF > register-ami.json
 {
@@ -103,7 +110,7 @@ cat <<EOF > register-ami.json
             }
         }
     ],
-    "Description": "DISTRO=$DISTRO;DISTRO_CODENAME=$DISTRO_CODENAME;DISTRO_NAME=$DISTRO_NAME;DISTRO_VERSION=$DISTRO_VERSION;BUILDNAME=$BUILDNAME;TARGET_ARCH=$ARCHITECTURE;IMAGE_NAME=$IMAGE_NAME",
+    "Description": "$DESCRIPTION",
     "RootDeviceName": "/dev/sda1",
     "BootMode": "uefi",
     "VirtualizationType": "hvm",
@@ -111,7 +118,7 @@ cat <<EOF > register-ami.json
 }
 EOF
 
-AMI_NAME="${IMAGE_NAME}-${DISTRO}-${DISTRO_CODENAME}-${DISTRO_VERSION}-${BUILDNAME}-${ARCHITECTURE}"
+AMI_NAME=$(echo "${IMAGE_NAME}-${DISTRO}-${DISTRO_CODENAME}-${DISTRO_VERSION}-${BUILDNAME}-${ARCHITECTURE}" | cut -c -128 | sed -e s/+/-/g)
 IMAGE_ID=$(aws ec2 describe-images --filters Name=name,Values=${AMI_NAME} | jq -r '.Images[].ImageId')
 if [ "$IMAGE_ID" != "" ]; then
     echo "Deregistering existing image $IMAGE_ID"
@@ -122,4 +129,3 @@ AMI_ID=$(aws ec2 register-image --name ${AMI_NAME} --cli-input-json="file://regi
 echo "AMI name: $AMI_NAME"
 echo "AMI ID: $AMI_ID"
 rm register-ami.json
-

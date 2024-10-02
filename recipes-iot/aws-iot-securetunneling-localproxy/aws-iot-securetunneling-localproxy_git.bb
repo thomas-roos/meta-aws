@@ -20,16 +20,23 @@ BRANCH ?= "main"
 SRC_URI = "\
   git://git@github.com/aws-samples/aws-iot-securetunneling-localproxy.git;branch=${BRANCH};protocol=https \
   file://boost-support-any.patch \
-  file://gcc13.patch \
+  file://remove-cxx-standard.patch \
+  file://boost-include-format.patch \
   file://run-ptest \
   "
-SRCREV = "b6c31b442fa6d4c930e705d2853efd73dadff169"
+SRCREV = "a2423da3b074e39c720393ffd0255f5df68fd1e7"
 
 UPSTREAM_CHECK_COMMITS = "1"
 
 S = "${WORKDIR}/git"
 
-inherit cmake ptest
+inherit cmake ptest pkgconfig
+
+PACKAGECONFIG ??= "\
+    ${@bb.utils.contains('PTEST_ENABLED', '1', 'with-tests', '', d)} \
+    "
+
+PACKAGECONFIG[with-tests] = "-DBUILD_TESTS=ON,-DBUILD_TESTS=OFF,"
 
 do_configure:prepend() {
     sed -i "s/Protobuf_LITE_STATIC_LIBRARY/Protobuf_LITE_LIBRARY/g" ${S}/CMakeLists.txt
@@ -49,3 +56,6 @@ do_install_ptest() {
   install -d ${D}${bindir}
   install -m 0755 ${B}/bin/localproxytest ${D}${bindir}/localproxytest
 }
+
+# fix DSO missing from command line
+LDFLAGS += "-Wl,--copy-dt-needed-entries"

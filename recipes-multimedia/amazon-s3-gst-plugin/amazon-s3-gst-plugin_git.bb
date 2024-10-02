@@ -11,12 +11,10 @@ DEPENDS = "\
 "
 
 # nooelint: oelint.file.patchsignedoff:Patch
-SRC_URI = "\
-    git://github.com/amzn/amazon-s3-gst-plugin.git;protocol=https;branch=master \
-    file://fix-linking-of-aws-crt-cpp.patch \
-    file://run-ptest \
-    "
-SRCREV = "e9a3609d4402709e0fb855717ac7fa2df2ef2802"
+SRC_URI = "git://github.com/amzn/amazon-s3-gst-plugin.git;protocol=https;branch=master \
+           file://run-ptest \
+           "
+SRCREV = "b0887cf881b915a07e78b5e9ff87835b51c8e26c"
 
 # this project do not use version tags, use latest commit
 UPSTREAM_CHECK_COMMITS = "1"
