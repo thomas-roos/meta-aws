@@ -92,7 +92,7 @@ jobs:
         run: |
            set -x
            sudo -u yoctouser bash -c '
-             cd  ${{ github.workspace }} &&
+             cd  ${{ github.workspace }}
           
              echo 'QEMU_USE_KVM = ""' >> build/conf/auto.conf
            
@@ -113,9 +113,11 @@ jobs:
                
              # PUT = package under test             
              echo 'PUT ?= ""' >> build/conf/auto.conf
-             echo 'IMAGE_INSTALL:append = " ptest-runner ssh ${PUT}"' >> build/conf/auto.conf
+             
+             for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do PUT+="${recipe}-ptest "; done
 
-             for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo 'PUT += ${recipe}-ptest' >> ${{ github.workspace }}/build/conf/auto.conf; done &&
+             echo 'IMAGE_INSTALL:append = " ptest-runner ssh ${PUT}"' >> build/conf/auto.conf
+             
              source poky/oe-init-build-env build
              export SSTATE_DIR=/sstate-cache 
              export DL_DIR=/downloads
