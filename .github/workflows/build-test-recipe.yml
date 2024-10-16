@@ -33,6 +33,59 @@ jobs:
           echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
         fi
         echo "$DIFF"
-        # Escape newlines (replace \n with %0A)
-        echo "diff=$( echo "$DIFF" | sed ':a;N;$!ba;s/\n/%0A/g' )" >> $GITHUB_OUTPUT
-
+        echo "diff=$( echo "$DIFF" | | tr -d '\n' )" >> $GITHUB_OUTPUT
+    - name: Get recipe names to build
+      run: | 
+        echo ${{ steps.diff.outputs.diff }} | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g'
+  build:
+  needs: generate-matrix
+  strategy:
+    fail-fast: false
+    matrix:
+      device:
+          - qemuarm
+          - qemuarm64
+          - qemux86-64          
+      image:
+          - aws-iot-greengrass-demo-image
+    runs-on: ${{ vars.CODEBUILD_RUNNER_NAME }}-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+  
+  name: build
+  runs-on: codebuild-${{ vars.CODEBUILD_RUNNER_NAME }}-${{ github.run_id }}-${{ github.run_attempt }}
+  steps:
+    - name: Checkout meta-aws
+        uses: actions/checkout@v4
+        with:
+            path: ${{ github.workspace }}/meta-aws
+      - name: Checkout meta-oe
+        uses: actions/checkout@v4
+        with:
+          repository: openembedded/meta-openembedded
+          path: ${{ github.workspace }}/meta-openembedded
+      - name: Checkout poky
+        run: |
+          git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky
+      - name: Run build
+        run: |
+           apt-get -y install sudo
+           chown yoctouser /sstate-cache
+           chown yoctouser /downloads
+           chown -R yoctouser .
+           sysctl vm.mmap_min_addr=65536
+           env
+           sudo -u yoctouser bash -c '\
+           whoami && \
+           id && \
+           cd  ${{ github.workspace }} &&
+           source poky/oe-init-build-env build
+           bitbake-layers add-layer ../meta-openembedded/meta-oe &&
+           bitbake-layers add-layer ../meta-openembedded/meta-python &&
+           bitbake-layers add-layer ../meta-openembedded/meta-networking &&
+           bitbake-layers add-layer ../meta-openembedded/meta-multimedia &&
+           bitbake-layers add-layer ../meta-aws &&
+           export SSTATE_DIR=/sstate-cache && \
+           export DL_DIR=/downloads && \
+           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
+           bitbake aws-cli '
+      
