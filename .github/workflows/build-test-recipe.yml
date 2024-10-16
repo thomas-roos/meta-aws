@@ -9,12 +9,12 @@ on:
       - '**.bb'
       - '**.inc'
 jobs:
-  generate-matrix:
-    name: Generate matrix for build
+  changed-recipes:
+    name: Get changed recipes to build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Check changed files
+    - name: Diff files and set variables
       id: diff
       run: |
         # See https://github.community/t/check-pushed-file-changes-with-git-diff-tree-in-github-actions/17220/10
@@ -33,21 +33,24 @@ jobs:
         echo "diff=$( echo "$DIFF" | tr -d '\n' )" >> $GITHUB_OUTPUT
         # Get recipe names
         export RECIPES=$( echo "$DIFF" | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
+        echo "Changed recipes"
         echo "$RECIPES"
         echo "recipes=$( echo "$RECIPES" | tr -d '\n' )" >> $GITHUB_OUTPUT
         echo ${{ steps.diff.outputs.diff }} | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g'
+        # TODO if nothing is found, build, test everything that should work
+        # THINGS_TO_EXCLUDE="! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin*" &&
+        # META_AWS_PACKAGES=$(find ../layers/sw/meta-aws -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g') &&
+      
   build-test:
     name: Build, Test recipes for different architectures
-    needs: generate-matrix
+    needs: changed-recipes
     strategy:
       fail-fast: false
       matrix:
-        device:
+        machine:
           - qemuarm
           - qemuarm64
           - qemux86-64          
-        image:
-          - aws-iot-greengrass-demo-image
     runs-on: codebuild-${{ vars.CODEBUILD_RUNNER_NAME }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout meta-aws
@@ -82,6 +85,7 @@ jobs:
            bitbake-layers add-layer ../meta-aws &&
            export SSTATE_DIR=/sstate-cache && \
            export DL_DIR=/downloads && \
+           export MACHINE=${{ matrix.machine }} && \
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
            bitbake ${{ steps.diff.outputs.recipes }} '
       
