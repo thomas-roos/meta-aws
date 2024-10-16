@@ -70,29 +70,29 @@ jobs:
           git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky
       - name: Run build
         run: |
-           apt-get -y install sudo
            chown yoctouser /sstate-cache
            chown yoctouser /downloads
            chown -R yoctouser .
            sysctl vm.mmap_min_addr=65536
            sudo -u yoctouser bash -c '
-           cd  ${{ github.workspace }} &&
+           cd  ${{ github.workspace }}
            source poky/oe-init-build-env build 
-           bitbake-layers add-layer ../meta-openembedded/meta-oe &&
-           bitbake-layers add-layer ../meta-openembedded/meta-python &&
-           bitbake-layers add-layer ../meta-openembedded/meta-networking &&
-           bitbake-layers add-layer ../meta-openembedded/meta-multimedia &&
-           bitbake-layers add-layer ../meta-aws &&
-           export SSTATE_DIR=/sstate-cache && 
-           export DL_DIR=/downloads && 
-           export MACHINE=${{ matrix.machine }} && 
-           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && 
+           bitbake-layers add-layer ../meta-openembedded/meta-oe
+           bitbake-layers add-layer ../meta-openembedded/meta-python
+           bitbake-layers add-layer ../meta-openembedded/meta-networking
+           bitbake-layers add-layer ../meta-openembedded/meta-multimedia
+           bitbake-layers add-layer ../meta-aws
+           export SSTATE_DIR=/sstate-cache
+           export DL_DIR=/downloads
+           export MACHINE=${{ matrix.machine }}
+           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
            bitbake ${{ needs.changed-recipes.outputs.recipes }} '
       - name: Run test
         run: |           
            sudo -u yoctouser bash -c '
            cd  ${{ github.workspace }} &&
            cat <<EOF >> ${{ github.workspace }}/build/conf/auto.conf
+           
            # Required to disable KVM/hypervisor mode.
            QEMU_USE_KVM = ""
            
@@ -110,7 +110,7 @@ jobs:
            # this will allow - running testimage cmd: bitbake core-image-minimal -c testimage
            IMAGE_CLASSES += "testimage"
 
-           # PUT = package under test / this is set in auto.conf
+           # PUT = package under test
            PUT ?= ""
            IMAGE_INSTALL:append = " ptest-runner ssh \${PUT}"
            EOF
@@ -120,7 +120,7 @@ jobs:
            export DL_DIR=/downloads && 
            export MACHINE=${{ matrix.machine }} && 
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && 
-           cat ${{ github.workspace }}/build/conf/auto.conf &&
+           cat build/conf/auto.conf
            bitbake core-image-minimal && 
            bitbake core-image-minimal -D -c testimage && 
            resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest && 
