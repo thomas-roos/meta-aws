@@ -75,8 +75,7 @@ jobs:
            chown yoctouser /downloads
            chown -R yoctouser .
            sysctl vm.mmap_min_addr=65536
-           sudo -u yoctouser bash -c 
-           '
+           sudo -u yoctouser bash -c '
              cd  ${{ github.workspace }}
              source poky/oe-init-build-env build 
              bitbake-layers add-layer ../meta-openembedded/meta-oe
@@ -88,13 +87,11 @@ jobs:
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-             bitbake ${{ needs.changed-recipes.outputs.recipes }} 
-           '
+             bitbake ${{ needs.changed-recipes.outputs.recipes }} '
       - name: Run test
         run: |
            set -x
-           sudo -u yoctouser bash -c 
-           '
+           sudo -u yoctouser bash -c '
              cd  ${{ github.workspace }} &&
              cat <<EOF >>${{ github.workspace }}/build/conf/auto.conf
            
@@ -133,5 +130,4 @@ jobs:
              pwd
              ls -al build/conf
              cat build/conf/auto.conf
-             cat ${{ github.workspace }}/build/conf/auto.conf
-           '
+             cat ${{ github.workspace }}/build/conf/auto.conf '
