@@ -116,7 +116,6 @@ jobs:
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-             cat build/conf/local.conf
              bitbake core-image-minimal
              bitbake core-image-minimal -c testimage
              resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest
