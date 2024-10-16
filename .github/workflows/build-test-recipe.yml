@@ -13,7 +13,7 @@ jobs:
     name: Get changed recipes to build
     runs-on: ubuntu-latest
     outputs:
-      my-output: ${{ steps.diff.outputs.recipes }}
+      recipes: ${{ steps.diff.outputs.recipes }}
     steps:
     - uses: actions/checkout@v2
     - name: Diff files and set variables
