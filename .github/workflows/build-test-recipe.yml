@@ -15,7 +15,7 @@ jobs:
     outputs:
       recipes: ${{ steps.diff.outputs.recipes }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Diff files and set variables
       id: diff
       run: |
