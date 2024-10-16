@@ -12,6 +12,8 @@ jobs:
   changed-recipes:
     name: Get changed recipes to build
     runs-on: ubuntu-latest
+    outputs:
+      my-output: ${{ steps.diff.outputs.recipes }}
     steps:
     - uses: actions/checkout@v2
     - name: Diff files and set variables
@@ -35,8 +37,7 @@ jobs:
         export RECIPES=$( echo "$DIFF" | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
         echo "Changed recipes"
         echo "$RECIPES"
-        echo "recipes=$( echo "$RECIPES" | tr -d '\n' )" >> $GITHUB_OUTPUT
-        echo ${{ steps.diff.outputs.diff }} | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g'
+        echo "recipes=$( echo "$RECIPES" | tr -d '\n' )" >> $GITHUB_OUTPUT        
         # TODO if nothing is found, build, test everything that should work
         # THINGS_TO_EXCLUDE="! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin*" &&
         # META_AWS_PACKAGES=$(find ../layers/sw/meta-aws -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g') &&
@@ -87,5 +88,5 @@ jobs:
            export DL_DIR=/downloads && \
            export MACHINE=${{ matrix.machine }} && \
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
-           bitbake ${{ steps.diff.outputs.recipes }} '
+           bitbake ${{ needs.changed-recipes.outputs.recipes }} '
       
