@@ -91,6 +91,7 @@ jobs:
       - name: Run test
         run: |
            set -x
+           chown -R yoctouser .
            sudo -u yoctouser bash -c '
              cd  ${{ github.workspace }}
              source poky/oe-init-build-env build
