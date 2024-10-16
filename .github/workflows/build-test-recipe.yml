@@ -75,7 +75,7 @@ jobs:
            chown yoctouser /downloads
            chown -R yoctouser .
            sysctl vm.mmap_min_addr=65536
-           sudo -u yoctouser bash -c '\
+           sudo -u yoctouser bash -c '
            cd  ${{ github.workspace }} &&
            source poky/oe-init-build-env build 
            bitbake-layers add-layer ../meta-openembedded/meta-oe &&
@@ -83,14 +83,17 @@ jobs:
            bitbake-layers add-layer ../meta-openembedded/meta-networking &&
            bitbake-layers add-layer ../meta-openembedded/meta-multimedia &&
            bitbake-layers add-layer ../meta-aws &&
-           export SSTATE_DIR=/sstate-cache && \
-           export DL_DIR=/downloads && \
-           export MACHINE=${{ matrix.machine }} && \
-           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
+           export SSTATE_DIR=/sstate-cache && 
+           export DL_DIR=/downloads && 
+           export MACHINE=${{ matrix.machine }} && 
+           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && 
            bitbake ${{ needs.changed-recipes.outputs.recipes }} '
       - name: Run test
         run: |
            cat <<EOF >>build/conf/local.conf
+           # Required to disable KVM/hypervisor mode.
+           QEMU_USE_KVM = ""
+           
            # set to the same as core-image-ptest
            QB_MEM = "-m 1024"
 
@@ -109,7 +112,7 @@ jobs:
            PUT ?= ""
            IMAGE_INSTALL:append = " ptest-runner ssh \${PUT}"
            EOF
-           sudo -u yoctouser bash -c '\
+           sudo -u yoctouser bash -c '
            cd  ${{ github.workspace }} &&
            for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done &&
            source poky/oe-init-build-env build
