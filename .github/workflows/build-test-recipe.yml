@@ -35,13 +35,15 @@ jobs:
         echo "diff=$( echo "$DIFF" | tr -d '\n' )" >> $GITHUB_OUTPUT
         # Get recipe names
         export RECIPES=$( echo "$DIFF" | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
-        echo "Changed recipes"
+        if [ -z "$variable" ]; then     
+          echo "No changed recipes, adding everything to test, build"
+          THINGS_TO_EXCLUDE="! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin*"
+          RECIPES=$(find . -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
+        else
+          echo "Changed recipes"
+        fi
         echo "$RECIPES"
-        echo "recipes=$( echo "$RECIPES" | tr -d '\n' )" >> $GITHUB_OUTPUT        
-        # TODO if nothing is found, build, test everything that should work
-        # THINGS_TO_EXCLUDE="! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin*" &&
-        # META_AWS_PACKAGES=$(find ../layers/sw/meta-aws -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g') &&
-      
+        echo "recipes=$( echo "$RECIPES" | tr -d '\n' )" >> $GITHUB_OUTPUT            
   build-test:
     name: Build, Test
     needs: changed-recipes
@@ -75,7 +77,7 @@ jobs:
            sysctl vm.mmap_min_addr=65536
            sudo -u yoctouser bash -c '\
            cd  ${{ github.workspace }} &&
-           source poky/oe-init-build-env build
+           source poky/oe-init-build-env build 
            bitbake-layers add-layer ../meta-openembedded/meta-oe &&
            bitbake-layers add-layer ../meta-openembedded/meta-python &&
            bitbake-layers add-layer ../meta-openembedded/meta-networking &&
@@ -90,14 +92,13 @@ jobs:
         run: |
            sudo -u yoctouser bash -c '\
            cd  ${{ github.workspace }} &&
+           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done \
            source poky/oe-init-build-env build
            export SSTATE_DIR=/sstate-cache && \
            export DL_DIR=/downloads && \
            export MACHINE=${{ matrix.machine }} && \
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
-           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done && \
            bitbake core-image-minimal && \
            bitbake -D -c testimage && \
            resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest && \
-           resulttool report build/tmp/log/oeqa/testresults.json && \
-           '
+           resulttool report build/tmp/log/oeqa/testresults.json '
