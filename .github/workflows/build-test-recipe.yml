@@ -70,6 +70,7 @@ jobs:
           git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky
       - name: Run build
         run: |
+           set -x
            chown yoctouser /sstate-cache
            chown yoctouser /downloads
            chown -R yoctouser .
@@ -88,7 +89,8 @@ jobs:
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
            bitbake ${{ needs.changed-recipes.outputs.recipes }} '
       - name: Run test
-        run: |           
+        run: |
+           set -x
            sudo -u yoctouser bash -c '
            cd  ${{ github.workspace }} &&
            cat <<EOF >> ${{ github.workspace }}/build/conf/auto.conf
@@ -116,12 +118,12 @@ jobs:
            EOF
            for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> ${{ github.workspace }}/build/conf/auto.conf; done &&
            source poky/oe-init-build-env build
-           export SSTATE_DIR=/sstate-cache && 
-           export DL_DIR=/downloads && 
-           export MACHINE=${{ matrix.machine }} && 
-           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && 
+           export SSTATE_DIR=/sstate-cache 
+           export DL_DIR=/downloads
+           export MACHINE=${{ matrix.machine }}
+           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
            cat build/conf/auto.conf
-           bitbake core-image-minimal && 
-           bitbake core-image-minimal -D -c testimage && 
-           resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest && 
+           bitbake core-image-minimal
+           bitbake core-image-minimal -c testimage
+           resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest
            resulttool report build/tmp/log/oeqa/testresults.json '
