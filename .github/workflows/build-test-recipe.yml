@@ -75,55 +75,63 @@ jobs:
            chown yoctouser /downloads
            chown -R yoctouser .
            sysctl vm.mmap_min_addr=65536
-           sudo -u yoctouser bash -c '
-           cd  ${{ github.workspace }}
-           source poky/oe-init-build-env build 
-           bitbake-layers add-layer ../meta-openembedded/meta-oe
-           bitbake-layers add-layer ../meta-openembedded/meta-python
-           bitbake-layers add-layer ../meta-openembedded/meta-networking
-           bitbake-layers add-layer ../meta-openembedded/meta-multimedia
-           bitbake-layers add-layer ../meta-aws
-           export SSTATE_DIR=/sstate-cache
-           export DL_DIR=/downloads
-           export MACHINE=${{ matrix.machine }}
-           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-           bitbake ${{ needs.changed-recipes.outputs.recipes }} '
+           sudo -u yoctouser bash -c 
+           '
+             cd  ${{ github.workspace }}
+             source poky/oe-init-build-env build 
+             bitbake-layers add-layer ../meta-openembedded/meta-oe
+             bitbake-layers add-layer ../meta-openembedded/meta-python
+             bitbake-layers add-layer ../meta-openembedded/meta-networking
+             bitbake-layers add-layer ../meta-openembedded/meta-multimedia
+             bitbake-layers add-layer ../meta-aws
+             export SSTATE_DIR=/sstate-cache
+             export DL_DIR=/downloads
+             export MACHINE=${{ matrix.machine }}
+             export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
+             bitbake ${{ needs.changed-recipes.outputs.recipes }} 
+           '
       - name: Run test
         run: |
            set -x
-           sudo -u yoctouser bash -c '
-           cd  ${{ github.workspace }} &&
-           cat <<EOF >> ${{ github.workspace }}/build/conf/auto.conf
+           sudo -u yoctouser bash -c 
+           '
+             cd  ${{ github.workspace }} &&
+             cat <<EOF >>${{ github.workspace }}/build/conf/auto.conf
            
-           # Required to disable KVM/hypervisor mode.
-           QEMU_USE_KVM = ""
+             # Required to disable KVM/hypervisor mode.
+             QEMU_USE_KVM = ""
            
-           # set to the same as core-image-ptest
-           QB_MEM = "-m 1024"
+             # set to the same as core-image-ptest
+             QB_MEM = "-m 1024"
 
-           # use slirp networking instead of TAP interface (require root rights)
-           QEMU_USE_SLIRP = "1"
-           TEST_SERVER_IP = "127.0.0.1"
+             # use slirp networking instead of TAP interface (require root rights)
+             QEMU_USE_SLIRP = "1"
+             TEST_SERVER_IP = "127.0.0.1"
 
-           # this will specify what test should run when running testimage cmd - oeqa layer tests + ptests:
-           # Ping and SSH are not required, but do help in debugging. ptest will discover all ptest packages.
-           TEST_SUITES = " ping ssh ptest"
+             # this will specify what test should run when running testimage cmd - oeqa layer tests + ptests:
+             # Ping and SSH are not required, but do help in debugging. ptest will discover all ptest packages.
+             TEST_SUITES = " ping ssh ptest"
 
-           # this will allow - running testimage cmd: bitbake core-image-minimal -c testimage
-           IMAGE_CLASSES += "testimage"
-
-           # PUT = package under test
-           PUT ?= ""
-           IMAGE_INSTALL:append = " ptest-runner ssh \${PUT}"
-           EOF
-           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> ${{ github.workspace }}/build/conf/auto.conf; done &&
-           source poky/oe-init-build-env build
-           export SSTATE_DIR=/sstate-cache 
-           export DL_DIR=/downloads
-           export MACHINE=${{ matrix.machine }}
-           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-           cat build/conf/auto.conf
-           bitbake core-image-minimal
-           bitbake core-image-minimal -c testimage
-           resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest
-           resulttool report build/tmp/log/oeqa/testresults.json '
+             # this will allow - running testimage cmd: bitbake core-image-minimal -c testimage
+             IMAGE_CLASSES += "testimage"
+  
+             # PUT = package under test
+             PUT ?= ""
+             IMAGE_INSTALL:append = " ptest-runner ssh \${PUT}"
+             EOF
+             for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> ${{ github.workspace }}/build/conf/auto.conf; done &&
+             source poky/oe-init-build-env build
+             export SSTATE_DIR=/sstate-cache 
+             export DL_DIR=/downloads
+             export MACHINE=${{ matrix.machine }}
+             export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
+             cat build/conf/auto.conf
+             bitbake core-image-minimal
+             bitbake core-image-minimal -c testimage
+             resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest
+             resulttool report build/tmp/log/oeqa/testresults.json 
+             pwd
+             ls -al build/conf
+             cat build/conf/auto.conf
+             cat ${{ github.workspace }}/build/conf/auto.conf
+           '
