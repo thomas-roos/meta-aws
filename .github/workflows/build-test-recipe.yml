@@ -92,7 +92,7 @@ jobs:
         run: |           
            sudo -u yoctouser bash -c '
            cd  ${{ github.workspace }} &&
-           cat <<EOF >> build/conf/auto.conf
+           cat <<EOF >> ${{ github.workspace }}/build/conf/auto.conf
            # Required to disable KVM/hypervisor mode.
            QEMU_USE_KVM = ""
            
@@ -114,13 +114,13 @@ jobs:
            PUT ?= ""
            IMAGE_INSTALL:append = " ptest-runner ssh \${PUT}"
            EOF
-           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done &&
+           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> ${{ github.workspace }}/build/conf/auto.conf; done &&
            source poky/oe-init-build-env build
            export SSTATE_DIR=/sstate-cache && 
            export DL_DIR=/downloads && 
            export MACHINE=${{ matrix.machine }} && 
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && 
-           cat build/conf/auto.conf &&
+           cat ${{ github.workspace }}/build/conf/auto.conf &&
            bitbake core-image-minimal && 
            bitbake core-image-minimal -D -c testimage && 
            resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest && 
