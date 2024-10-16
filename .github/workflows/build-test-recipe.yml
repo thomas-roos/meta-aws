@@ -73,10 +73,7 @@ jobs:
            chown yoctouser /downloads
            chown -R yoctouser .
            sysctl vm.mmap_min_addr=65536
-           env
            sudo -u yoctouser bash -c '\
-           whoami && \
-           id && \
            cd  ${{ github.workspace }} &&
            source poky/oe-init-build-env build
            bitbake-layers add-layer ../meta-openembedded/meta-oe &&
@@ -89,4 +86,18 @@ jobs:
            export MACHINE=${{ matrix.machine }} && \
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
            bitbake ${{ needs.changed-recipes.outputs.recipes }} '
-      
+      - name: Run test
+        run: |
+           sudo -u yoctouser bash -c '\
+           cd  ${{ github.workspace }} &&
+           source poky/oe-init-build-env build
+           export SSTATE_DIR=/sstate-cache && \
+           export DL_DIR=/downloads && \
+           export MACHINE=${{ matrix.machine }} && \
+           export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
+           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done && \
+           bitbake core-image-minimal && \
+           bitbake -D -c testimage && \
+           resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest && \
+           resulttool report build/tmp/log/oeqa/testresults.json && \
+           '
