@@ -34,48 +34,5 @@ jobs:
         fi
         echo "$DIFF"
         # Escape newlines (replace \n with %0A)
-        echo "::set-output name=diff::$( echo "$DIFF" | sed ':a;N;$!ba;s/\n/%0A/g' )"
-    - name: Set matrix for build
-      id: set-matrix
-      run: |
-        # See https://stackoverflow.com/a/62953566/11948346
-        DIFF="${{ steps.diff.outputs.diff }}"
-        JSON="{"include":["
-          # Loop by lines
-          while read path; 
-          do
-            # Set $directory to substring before /
-            directory="$( echo $path | cut -d'/' -f1 -s )"
-
-            if [ -z "$directory" ]; then
-              continue # Exclude root directory
-            elif [ "$directory" == docs ]; then
-              continue # Exclude docs directory
-            elif [ "$path" == *.rst ]; then
-              continue # Exclude *.rst files
-            fi
-
-            # Set $os. "ubuntu-latest" by default. if directory starts with windows, then "windows-latest"
-            os="ubuntu-latest"
-            if [ "$directory" == windows* ]; then
-              os="windows-latest"
-            fi
-
-            # Add build to the matrix only if it is not already included
-            JSONline="{\"directory\": \"$directory\", \"os\": \"$os\"},"
-            if [[ "$JSON" != *"$JSONline"* ]]; then
-              JSON="$JSON$JSONline"
-            fi
-          done 
-          echo "$DIFF"
-
-          # Remove last "," and add closing brackets
-          if [[ $JSON == *, ]]; then
-            JSON="${JSON%?}"
-          fi
-          JSON="$JSON]}"
-          echo $JSON
-
-          # Set output
-          echo "::set-output name=matrix::$( echo "$JSON" )"
+        echo "diff=$( echo "$DIFF" | sed ':a;N;$!ba;s/\n/%0A/g' )" >> $GITHUB_OUTPUT
 
