@@ -8,13 +8,10 @@ on:
     paths:
       - '**.bb'
       - '**.inc'
-
 jobs:
   generate-matrix:
     name: Generate matrix for build
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}    
     steps:
     - uses: actions/checkout@v2
     - name: Check changed files
@@ -33,28 +30,27 @@ jobs:
           echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
         fi
         echo "$DIFF"
-        echo "diff=$( echo "$DIFF" | | tr -d '\n' )" >> $GITHUB_OUTPUT
-    - name: Get recipe names to build
-      run: | 
+        echo "diff=$( echo "$DIFF" | tr -d '\n' )" >> $GITHUB_OUTPUT
+        # Get recipe names
+        export RECIPES=$( echo "$DIFF" | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
+        echo "$RECIPES"
+        echo "recipes=$( echo "$RECIPES" | tr -d '\n' )" >> $GITHUB_OUTPUT
         echo ${{ steps.diff.outputs.diff }} | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g'
-  build:
-  needs: generate-matrix
-  strategy:
-    fail-fast: false
-    matrix:
-      device:
+  build-test:
+    name: Build, Test recipes for different architectures
+    needs: generate-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        device:
           - qemuarm
           - qemuarm64
           - qemux86-64          
-      image:
+        image:
           - aws-iot-greengrass-demo-image
-    runs-on: ${{ vars.CODEBUILD_RUNNER_NAME }}-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: codebuild-${{ vars.CODEBUILD_RUNNER_NAME }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-  
-  name: build
-  runs-on: codebuild-${{ vars.CODEBUILD_RUNNER_NAME }}-${{ github.run_id }}-${{ github.run_attempt }}
-  steps:
-    - name: Checkout meta-aws
+      - name: Checkout meta-aws
         uses: actions/checkout@v4
         with:
             path: ${{ github.workspace }}/meta-aws
@@ -87,5 +83,5 @@ jobs:
            export SSTATE_DIR=/sstate-cache && \
            export DL_DIR=/downloads && \
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
-           bitbake aws-cli '
+           bitbake ${{ steps.diff.outputs.recipes }} '
       
