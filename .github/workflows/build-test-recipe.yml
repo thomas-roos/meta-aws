@@ -10,7 +10,7 @@ on:
       - '**.inc'
 jobs:
   changed-recipes:
-    name: Get changed recipes to build
+    name: Get changed recipes
     runs-on: ubuntu-latest
     outputs:
       recipes: ${{ steps.diff.outputs.recipes }}
@@ -43,7 +43,7 @@ jobs:
         # META_AWS_PACKAGES=$(find ../layers/sw/meta-aws -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g') &&
       
   build-test:
-    name: Build, Test recipes for different architectures
+    name: Build, Test
     needs: changed-recipes
     strategy:
       fail-fast: false
