@@ -90,6 +90,7 @@ jobs:
            bitbake ${{ needs.changed-recipes.outputs.recipes }} '
       - name: Run test
         run: |
+           cd  ${{ github.workspace }} &&
            cat <<EOF >>build/conf/local.conf
            # Required to disable KVM/hypervisor mode.
            QEMU_USE_KVM = ""
@@ -112,8 +113,7 @@ jobs:
            PUT ?= ""
            IMAGE_INSTALL:append = " ptest-runner ssh \${PUT}"
            EOF
-           sudo -u yoctouser bash -c '
-           cd  ${{ github.workspace }} &&
+           sudo -u yoctouser bash -c '          
            for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done &&
            source poky/oe-init-build-env build
            export SSTATE_DIR=/sstate-cache && 
