@@ -91,34 +91,33 @@ jobs:
       - name: Run test
         run: |
            set -x
-           chown -R yoctouser .
            sudo -u yoctouser bash -c '
              cd  ${{ github.workspace }}
              source poky/oe-init-build-env build
-             echo QEMU_USE_KVM = \"\" >> conf/auto.conf
+             echo QEMU_USE_KVM = \"\" >> conf/site.conf
              # set to the same as core-image-ptest
-             echo QB_MEM = \"-m 1024\" >> conf/auto.conf
+             echo QB_MEM = \"-m 1024\" >> conf/site.conf
              # use slirp networking instead of TAP interface (require root rights)
-             echo QEMU_USE_SLIRP = \"1\" >> conf/auto.conf
-             echo TEST_SERVER_IP = \"127.0.0.1\" >> conf/auto.conf
+             echo QEMU_USE_SLIRP = \"1\" >> conf/site.conf
+             echo TEST_SERVER_IP = \"127.0.0.1\" >> conf/site.conf
              # this will specify what test should run when running testimage cmd - oeqa layer tests + ptests:
              # Ping and SSH are not required, but do help in debugging. ptest will discover all ptest packages.
-             echo TEST_SUITES = \" ping ssh ptest\" >> conf/auto.conf
+             echo TEST_SUITES = \" ping ssh ptest\" >> conf/site.conf
              # this will allow - running testimage cmd: bitbake core-image-minimal -c testimage
-             echo IMAGE_CLASSES += \"testimage\" >> conf/auto.conf
+             echo IMAGE_CLASSES += \"testimage\" >> conf/site.conf
              # PUT = package under test
-             echo PUT ?= \"\" >> conf/auto.conf
+             echo PUT ?= \"\" >> conf/site.conf
              for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do PUT+="${recipe}-ptest "; done
-             echo IMAGE_INSTALL:append = \" ptest-runner ssh ${PUT}\" >> conf/auto.conf    
+             echo IMAGE_INSTALL:append = \" ptest-runner ssh ${PUT}\" >> conf/site.conf    
              export SSTATE_DIR=/sstate-cache 
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-             cat build/conf/auto.conf
+             cat build/conf/site.conf
              bitbake core-image-minimal
              bitbake core-image-minimal -c testimage
              resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest
              resulttool report build/tmp/log/oeqa/testresults.json 
              pwd
              ls -al conf/*
-             cat conf/auto.conf '
+             cat conf/site.conf '
