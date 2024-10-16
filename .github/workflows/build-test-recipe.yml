@@ -92,13 +92,13 @@ jobs:
         run: |
            sudo -u yoctouser bash -c '\
            cd  ${{ github.workspace }} &&
-           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done \
+           for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do echo PUT += \"${recipe}-ptest\" >> build/conf/auto.conf; done &&
            source poky/oe-init-build-env build
            export SSTATE_DIR=/sstate-cache && \
            export DL_DIR=/downloads && \
            export MACHINE=${{ matrix.machine }} && \
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && \
-           bitbake core-image-minimal && \
-           bitbake -D -c testimage && \
+           bitbake core-image-minimal \
+           bitbake -D -c testimage \
            resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest && \
            resulttool report build/tmp/log/oeqa/testresults.json '
