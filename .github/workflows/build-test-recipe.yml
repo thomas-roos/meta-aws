@@ -118,6 +118,6 @@ jobs:
            export MACHINE=${{ matrix.machine }} && 
            export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" && 
            bitbake core-image-minimal && 
-           bitbake -D -c testimage && 
+           bitbake core-image-minimal -D -c testimage && 
            resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest && 
            resulttool report build/tmp/log/oeqa/testresults.json '
