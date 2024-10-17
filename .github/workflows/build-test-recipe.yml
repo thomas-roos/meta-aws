@@ -111,7 +111,7 @@ jobs:
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
              bitbake ${{ needs.changed-recipes.outputs.recipes }} -k | tee -a $MACHINE-build.log
              test -e $MACHINE-build.log && ! grep -A3 " failed"  $MACHINE-build.log
-             test -e $MACHINE-build.log && ! grep -A3 " ERROR:"  $MACHINE-build.log
+             test -e $MACHINE-build.log && ! grep -A3 " ERROR:"  $MACHINE-build.log'
       - name: Save ${{ matrix.machine }}-build.log
         if: '!cancelled()'
         uses: actions/upload-artifact@v4
