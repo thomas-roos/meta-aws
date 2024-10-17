@@ -100,7 +100,9 @@ jobs:
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-             bitbake ${{ needs.changed-recipes.outputs.recipes }} '
+             bitbake ${{ needs.changed-recipes.outputs.recipes }} -k | tee -a $MACHINE-build.log
+            find . -maxdepth 1 -name "*.log" | grep . &>/dev/null && ! grep -A3 " failed"  *.log
+            find . -maxdepth 1 -name "*.log" | grep . &>/dev/null && ! grep -A3 " ERROR:"  *.log'
       - name: Run test
         run: |
            set -x
@@ -117,4 +119,6 @@ jobs:
              bitbake core-image-minimal
              bitbake core-image-minimal -c testimage
              resulttool log tmp/log/oeqa/testresults.json --raw-ptest
-             resulttool report tmp/log/oeqa/testresults.json '
+             resulttool report tmp/log/oeqa/testresults.json 
+             find tmp/log/oeqa/ -maxdepth 1 -name "*.json" | grep . &>/dev/null && ! grep -B3 "\"FAILED\""  *.json'
+           
