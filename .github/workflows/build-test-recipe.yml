@@ -103,6 +103,12 @@ jobs:
              bitbake ${{ needs.changed-recipes.outputs.recipes }} -k | tee -a $MACHINE-build.log
             find . -maxdepth 1 -name "*.log" | grep . &>/dev/null && ! grep -A3 " failed"  *.log
             find . -maxdepth 1 -name "*.log" | grep . &>/dev/null && ! grep -A3 " ERROR:"  *.log'
+      - name: Save ${{ matrix.machine }}-build.log
+        if: '!cancelled()'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.machine }}-build.log
+          path: build/${{ matrix.machine }}-build.log         
       - name: Run test
         run: |
            set -x
@@ -119,6 +125,12 @@ jobs:
              bitbake core-image-minimal
              bitbake core-image-minimal -c testimage
              resulttool log tmp/log/oeqa/testresults.json --raw-ptest
-             resulttool report tmp/log/oeqa/testresults.json 
+             resulttool report tmp/log/oeqa/testresults.json | tee -a ${{ matrix.machine }}-resulttool_report.txt
+             cat resulttool_report.txt >> $GITHUB_STEP_SUMMARY
              find tmp/log/oeqa/ -maxdepth 1 -name "*.json" | grep . &>/dev/null && ! grep -B3 "\"FAILED\""  *.json'
-           
+      - name: Save resulttool_report.txt
+        if: '!cancelled()'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.machine }}-resulttool_report.txt 
+          path: build/${{ matrix.machine }}-resulttool_report.txt             
