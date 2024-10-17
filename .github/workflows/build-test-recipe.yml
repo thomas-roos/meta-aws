@@ -101,8 +101,8 @@ jobs:
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
              bitbake ${{ needs.changed-recipes.outputs.recipes }} -k | tee -a $MACHINE-build.log
-            find . -maxdepth 1 -name "*.log" | grep . &>/dev/null && ! grep -A3 " failed"  *.log
-            find . -maxdepth 1 -name "*.log" | grep . &>/dev/null && ! grep -A3 " ERROR:"  *.log'
+             find . -maxdepth 1 -name $MACHINE-build.log | grep $MACHINE-build.log &>/dev/null && ! grep -A3 " failed"
+             find . -maxdepth 1 -name $MACHINE-build.log | grep $MACHINE-build.log &>/dev/null && ! grep -A3 " ERROR:"'
       - name: Save ${{ matrix.machine }}-build.log
         if: '!cancelled()'
         uses: actions/upload-artifact@v4
