@@ -112,15 +112,15 @@ jobs:
              source poky/oe-init-build-env build            
              # PUT = package under test
              for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do PUT+="${recipe}-ptest "; done
-             echo IMAGE_INSTALL += \" ptest-runner ssh ${PUT}\" >> conf/local.conf    
+             echo IMAGE_INSTALL:append = \" ptest-runner ssh ${PUT}\" >> conf/local.conf    
              export SSTATE_DIR=/sstate-cache 
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
              bitbake core-image-minimal
              bitbake core-image-minimal -c testimage
-             resulttool log build/tmp/log/oeqa/testresults.json --raw-ptest
-             resulttool report build/tmp/log/oeqa/testresults.json 
+             resulttool log tmp/log/oeqa/testresults.json --raw-ptest
+             resulttool report tmp/log/oeqa/testresults.json 
              pwd
              ls -al conf/*
              cat conf/local.conf '
