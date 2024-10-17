@@ -68,16 +68,15 @@ jobs:
         uses: actions/checkout@v4
         with:
             path: ${{ github.workspace }}/meta-aws
-            branch: ${{ needs.changed-recipes.outputs.release }}
       - name: Checkout meta-oe
         uses: actions/checkout@v4
         with:
           repository: openembedded/meta-openembedded
           path: ${{ github.workspace }}/meta-openembedded
-          branch: ${{ needs.changed-recipes.outputs.release }}
+          ref: ${{ needs.changed-recipes.outputs.release }}
       - name: Checkout poky
         run: |
-          git clone git://git.yoctoproject.org/poky --single-branch  -b ${{ needs.changed-recipes.outputs.release }} ${{ github.workspace }}/poky 
+          git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky -b ${{ needs.changed-recipes.outputs.release }}
       - name: Run build
         run: |
            set -x
