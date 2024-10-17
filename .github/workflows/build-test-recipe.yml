@@ -53,7 +53,7 @@ jobs:
           echo "$RELEASE"
           echo "release=${RELEASE:-master}" >> $GITHUB_OUTPUT  
   build-test:
-    name: Build, Test on ${{ needs.changed-recipes.outputs.release }}
+    name: Build, Test ${{ matrix.machine }} ${{ needs.changed-recipes.outputs.release }}
     needs: changed-recipes
     strategy:
       fail-fast: false
@@ -133,7 +133,6 @@ jobs:
              bitbake core-image-minimal -c testimage
              resulttool log tmp/log/oeqa/testresults.json --raw-ptest
              resulttool report tmp/log/oeqa/testresults.json | tee -a ${{ matrix.machine }}-resulttool_report.txt
-             cat ${{ matrix.machine }}-resulttool_report.txt >> $GITHUB_STEP_SUMMARY
              test -e tmp/log/oeqa/testresults.json && ! grep -B3 "\"FAILED\""  tmp/log/oeqa/testresults.json'
       - name: Save resulttool_report.txt
         if: '!cancelled()'
