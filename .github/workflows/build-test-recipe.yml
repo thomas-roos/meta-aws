@@ -53,7 +53,7 @@ jobs:
           echo "$RELEASE"
           echo "release=${RELEASE:-master}" >> $GITHUB_OUTPUT  
   build-test:
-    name: Build, Test on: ${{ needs.changed-recipes.outputs.release }}
+    name: Build, Test on ${{ needs.changed-recipes.outputs.release }}
     needs: changed-recipes
     strategy:
       fail-fast: false
