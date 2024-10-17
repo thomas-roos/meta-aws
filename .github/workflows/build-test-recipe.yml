@@ -36,9 +36,9 @@ jobs:
         # Get recipe names
         export RECIPES=$( echo "$DIFF" | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
         if [ -z "$DIFF" ]; then     
-          echo "No changed recipes, adding everything to test, build"
+          echo "No changed recipes, adding everything with a ptest to test, build"
           THINGS_TO_EXCLUDE="! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin* ! -name amazon-kvs-producer-sdk-c*"
-          RECIPES=$(find . -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
+          RECIPES=$(find . -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
         else
           echo "Changed recipes"
         fi
