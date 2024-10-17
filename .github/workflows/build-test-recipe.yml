@@ -112,7 +112,7 @@ jobs:
              source poky/oe-init-build-env build            
              # PUT = package under test
              for recipe in ${{ needs.changed-recipes.outputs.recipes }}; do PUT+="${recipe}-ptest "; done
-             echo IMAGE_INSTALL:append = \" ptest-runner ssh ${PUT}\" >> conf/local.conf    
+             echo IMAGE_INSTALL += \" ptest-runner ssh ${PUT}\" >> conf/local.conf    
              export SSTATE_DIR=/sstate-cache 
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
