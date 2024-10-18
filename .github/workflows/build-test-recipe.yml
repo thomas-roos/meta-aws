@@ -32,7 +32,7 @@ jobs:
           echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
         fi
         echo "$DIFF"
-        echo "diff=$( echo "$DIFF" | tr -d '\n' )" >> $GITHUB_OUTPUT
+        echo "diff=$( echo "$DIFF" | tr '\n' ' ' )" >> $GITHUB_OUTPUT
     - name: get yocto release name
       id: get-yocto-release-name
       run: |
