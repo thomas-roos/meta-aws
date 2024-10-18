@@ -1,6 +1,7 @@
 # Copyright (c) 2022 Amazon.com, Inc. or its affiliates.
 # SPDX-License-Identifier: MIT
 
+
 import json
 import sys
 
@@ -15,3 +16,4 @@ with open (sys.argv[1], 'rb') as json_file:
                 testname = test['name']
                 result = 'PASS' if not 'failures' in test else 'FAIL'
                 print(f"{result}: {test['name']}")
+                
