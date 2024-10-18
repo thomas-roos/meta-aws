@@ -70,7 +70,7 @@ jobs:
         run: |
           echo diff:
           echo ${{ needs.changed.outputs.diff }}
-          if [ -z "${{ needs.changed.outputs.diff }}" ]; then     
+          if [ " " == "${{ needs.changed.outputs.diff }}" ]; then     
             echo "No changed recipes, adding everything with a ptest to test, build"          
             THINGS_TO_EXCLUDE="! -name aws-lc* ! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin* ! -name amazon-kvs-producer-sdk-c* ! -name  aws-cli-v2*"
             if [ ${{ matrix.machine }} == "qemuarm" ]; then
