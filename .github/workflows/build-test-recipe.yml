@@ -66,7 +66,7 @@ jobs:
         run: |
           git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky -b ${{ needs.changed.outputs.release }}
       - name: Get changed Recipes or defaults
-        id: recipes
+        id: recipes        
         run: |
           echo diff:
           echo ${{ needs.changed.outputs.diff }}
@@ -83,7 +83,7 @@ jobs:
           fi
           echo RECIPES to build:
           echo "$RECIPES"
-          echo "recipes=$( echo "$RECIPES" )" >> $GITHUB_OUTPUT  
+          echo "recipes=$RECIPES" >> $GITHUB_OUTPUT  
       - name: Run build
         run: |
            chown yoctouser /sstate-cache
@@ -116,7 +116,7 @@ jobs:
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-             bitbake ${{ steps.recipes.recipes }} -k | tee -a $MACHINE-build.log
+             bitbake $RECIPES -k | tee -a $MACHINE-build.log
              test -e $MACHINE-build.log && ! grep -A3 " failed"  $MACHINE-build.log
              test -e $MACHINE-build.log && ! grep -A3 " ERROR:"  $MACHINE-build.log'
       - name: Save ${{ matrix.machine }}-build.log
@@ -131,7 +131,7 @@ jobs:
              cd  ${{ github.workspace }}
              source poky/oe-init-build-env build            
              # PUT = package under test
-             for recipe in ${{ steps.recipes.recipes }}; do PUT+="${recipe}-ptest "; done
+             for recipe in $RECIPES; do PUT+="${recipe}-ptest "; done
              echo IMAGE_INSTALL:append = \" ptest-runner ssh ${PUT}\" >> conf/local.conf    
              export SSTATE_DIR=/sstate-cache 
              export DL_DIR=/downloads
