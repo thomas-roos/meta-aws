@@ -23,12 +23,12 @@ jobs:
         if [ $GITHUB_BASE_REF ]; then
           # Pull Request
           git fetch origin $GITHUB_BASE_REF --depth=1
-          DIFF=$( git diff --name-only origin/$GITHUB_BASE_REF $GITHUB_SHA )
+          export DIFF=$( git diff --name-only origin/$GITHUB_BASE_REF $GITHUB_SHA )
           echo "Diff between origin/$GITHUB_BASE_REF and $GITHUB_SHA"
         else
           # Push
           git fetch origin ${{ github.event.before }} --depth=1
-          DIFF=$( git diff --name-only ${{ github.event.before }} $GITHUB_SHA )
+          export DIFF=$( git diff --name-only ${{ github.event.before }} $GITHUB_SHA )
           echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
         fi
         echo "$DIFF"
@@ -36,7 +36,7 @@ jobs:
     - name: get yocto release name
       id: get-yocto-release-name
       run: |
-          RELEASE=$(echo ${{github.event.pull_request.base.ref}} | cut -d- -f1)
+          export RELEASE=$(echo ${{github.event.pull_request.base.ref}} | cut -d- -f1)
           # this is deprecated, but replacement does not seem to work now?
           echo "$RELEASE"
           echo "release=${RELEASE:-master}" >> $GITHUB_OUTPUT  
@@ -70,14 +70,14 @@ jobs:
         run: |                  
           if [ -z "${{ needs.changed.outputs.diff }}" ]; then     
             echo "No changed recipes, adding everything with a ptest to test, build"          
-            THINGS_TO_EXCLUDE="! -name aws-lc* ! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin* ! -name amazon-kvs-producer-sdk-c* ! -name  aws-cli-v2*"
+            export THINGS_TO_EXCLUDE="! -name aws-lc* ! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin* ! -name amazon-kvs-producer-sdk-c* ! -name  aws-cli-v2*"
             if [ ${{ matrix.machine }} == "qemuarm" ]; then
               THINGS_TO_EXCLUDE+="! -name amazon-kvs-webrtc-sdk*"
             fi
-            RECIPES=$(find meta-aws/ -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
+            export RECIPES=$(find meta-aws/ -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
           else
             echo "Changed recipes"
-            RECIPES=$( echo "${{ needs.changed.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
+            export RECIPES=$( echo "${{ needs.changed.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
           fi
           echo "$RECIPES"
           echo "recipes=$( echo "$RECIPES" )" >> $GITHUB_OUTPUT  
