@@ -107,6 +107,7 @@ jobs:
              # Ping and SSH are not required, but do help in debugging. ptest will discover all ptest packages.
              TEST_SUITES = " ping ssh ptest"
              EOF
+             cat conf/local.conf
              bitbake-layers add-layer ../meta-openembedded/meta-oe
              bitbake-layers add-layer ../meta-openembedded/meta-python
              bitbake-layers add-layer ../meta-openembedded/meta-networking
