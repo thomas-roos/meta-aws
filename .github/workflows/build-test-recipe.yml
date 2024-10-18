@@ -41,7 +41,7 @@ jobs:
           echo "$RELEASE"
           echo "release=${RELEASE:-master}" >> $GITHUB_OUTPUT  
   build-test:
-    name: Build, Test ${{ matrix.machine }} ${{ needs.changed-recipes.outputs.release }}
+    name: Build, Test ${{ matrix.machine }} ${{ needs.changed.outputs.release }}
     needs: changed
     strategy:
       fail-fast: false
@@ -61,14 +61,14 @@ jobs:
         with:
           repository: openembedded/meta-openembedded
           path: ${{ github.workspace }}/meta-openembedded
-          ref: ${{ needs.changed-recipes.outputs.release }}
+          ref: ${{ needs.changed.outputs.release }}
       - name: Checkout poky
         run: |
-          git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky -b ${{ needs.changed-recipes.outputs.release }}
+          git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky -b ${{ needs.changed.outputs.release }}
       - name: Get changed Recipes or defaults
         id: recipes
         run: |                  
-          if [ -z "${{ needs.changed-recipes.outputs.diff }}" ]; then     
+          if [ -z "${{ needs.changed.outputs.diff }}" ]; then     
             echo "No changed recipes, adding everything with a ptest to test, build"          
             THINGS_TO_EXCLUDE="! -name aws-lc* ! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin* ! -name amazon-kvs-producer-sdk-c* ! -name  aws-cli-v2*"
             if [ ${{ matrix.machine }} == "qemuarm" ]; then
@@ -77,7 +77,7 @@ jobs:
             RECIPES=$(find meta-aws/ -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
           else
             echo "Changed recipes"
-            RECIPES=$( echo "${{ needs.changed-recipes.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
+            RECIPES=$( echo "${{ needs.changed.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
           fi
           echo "$RECIPES"
           echo "recipes=$( echo "$RECIPES" )" >> $GITHUB_OUTPUT  
@@ -89,20 +89,24 @@ jobs:
            sysctl vm.mmap_min_addr=65536
            sudo -u yoctouser bash -c '
              cd  ${{ github.workspace }}
-             source poky/oe-init-build-env build
-             echo QEMU_USE_KVM = \"\" >> conf/local.conf
-             # set to the same as core-image-ptest
-             echo QB_MEM = \"-m 1024\" >> conf/local.conf
-             # use slirp networking instead of TAP interface (require root rights)
-             echo QEMU_USE_SLIRP = \"1\" >> conf/local.conf
-             echo TEST_RUNQEMUPARAMS += \"slirp\" >> conf/local.conf
-             echo TEST_SERVER_IP = \"127.0.0.1\" >> conf/local.conf             
-             echo DISTRO_FEATURES += \"ptest\" >> conf/local.conf
-             # this will specify what test should run when running testimage cmd - oeqa layer tests + ptests:
+             source poky/oe-init-build-env build             
+             cat <<EOF >> conf/local.conf
+             # Set QEMU_USE_KVM to an empty string to effectively disable KVM usage
+             QEMU_USE_KVM = ""
+             # Set QB_MEM to "-m 1024" to specify the memory size for the QEMU virtual machine
+             QB_MEM = "-m   1024"
+             # Enable the use of SLIRP networking instead of a TAP interface, which requires root privileges
+             QEMU_USE_SLIRP = "1"
+             # Add the "slirp" parameter to the TEST_RUNQEMUPARAMS variable
+             TEST_RUNQEMUPARAMS += "slirp"
+             # Set the TEST_SERVER_IP variable to the provided IP address
+             TEST_SERVER_IP = "192.168.7.2"
+             # Add the "ptest" feature to the DISTRO_FEATURES variable
+             DISTRO_FEATURES += "ptest"
+             # Set the TEST_SUITES variable to include the "ping", "ssh", and "ptest" tests
              # Ping and SSH are not required, but do help in debugging. ptest will discover all ptest packages.
-             echo TEST_SUITES = \" ping ssh ptest\" >> conf/local.conf
-             # this will allow - running testimage cmd: bitbake core-image-minimal -c testimage
-             echo IMAGE_CLASSES += \"testimage\" >> conf/local.conf             
+             TEST_SUITES = " ping ssh ptest"
+             EOF
              bitbake-layers add-layer ../meta-openembedded/meta-oe
              bitbake-layers add-layer ../meta-openembedded/meta-python
              bitbake-layers add-layer ../meta-openembedded/meta-networking
