@@ -32,7 +32,7 @@ jobs:
           echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
         fi
         echo "$DIFF"
-        echo "diff=$DIFF" >> $GITHUB_OUTPUT
+        echo "diff=$( echo "$DIFF" | tr -d '\n' )" >> $GITHUB_OUTPUT
     - name: get yocto release name
       id: get-yocto-release-name
       run: |
@@ -77,7 +77,7 @@ jobs:
             export RECIPES=$(find meta-aws/ -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
           else
             echo "Changed recipes"
-            export RECIPES=$( echo "${{ needs.changed.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
+            export RECIPES=$( echo "${{ needs.changed.outputs.diff }}" | tr ' ' '\n' | grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
           fi
           echo "$RECIPES"
           echo "recipes=$( echo "$RECIPES" )" >> $GITHUB_OUTPUT  
