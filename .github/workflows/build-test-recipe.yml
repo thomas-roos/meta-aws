@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '**.bb'
+      - '**.bbappend'
       - '**.inc'
 jobs:
   changed-recipes:
@@ -22,12 +23,12 @@ jobs:
         if [ $GITHUB_BASE_REF ]; then
           # Pull Request
           git fetch origin $GITHUB_BASE_REF --depth=1
-          export DIFF=$( git diff --name-only origin/$GITHUB_BASE_REF $GITHUB_SHA )
+          DIFF=$( git diff --name-only origin/$GITHUB_BASE_REF $GITHUB_SHA )
           echo "Diff between origin/$GITHUB_BASE_REF and $GITHUB_SHA"
         else
           # Push
           git fetch origin ${{ github.event.before }} --depth=1
-          export DIFF=$( git diff --name-only ${{ github.event.before }} $GITHUB_SHA )
+          DIFF=$( git diff --name-only ${{ github.event.before }} $GITHUB_SHA )
           echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
         fi
         echo "$DIFF"
@@ -42,6 +43,8 @@ jobs:
   build-test:
     name: Build, Test ${{ matrix.machine }} ${{ needs.changed-recipes.outputs.release }}
     needs: changed-recipes
+    outputs:
+      recipes: ${{ steps.diff.recipes.recipes }}
     strategy:
       fail-fast: false
       matrix:
@@ -66,17 +69,17 @@ jobs:
           git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky -b ${{ needs.changed-recipes.outputs.release }}
       - name: Get changed Recipes or defaults
         id: recipes
-        run: |        
-          export RECIPES=$( echo "${{ needs.changed-recipes.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
+        run: |                  
           if [ -z "${{ needs.changed-recipes.outputs.diff }}" ]; then     
             echo "No changed recipes, adding everything with a ptest to test, build"          
             THINGS_TO_EXCLUDE="! -name aws-lc* ! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin* ! -name amazon-kvs-producer-sdk-c* ! -name  aws-cli-v2*"
             if [ ${{ matrix.machine }} == "qemuarm" ]; then
-              THINGS_TO_EXCLUDE += "! -name amazon-kvs-webrtc-sdk*"
+              THINGS_TO_EXCLUDE+="! -name amazon-kvs-webrtc-sdk*"
             fi
             RECIPES=$(find . -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
           else
             echo "Changed recipes"
+            RECIPES=$( echo "${{ needs.changed-recipes.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
           fi
           echo "$RECIPES"
           echo "recipes=$( echo "$RECIPES" )" >> $GITHUB_OUTPUT  
@@ -101,7 +104,7 @@ jobs:
              # Ping and SSH are not required, but do help in debugging. ptest will discover all ptest packages.
              echo TEST_SUITES = \" ping ssh ptest\" >> conf/local.conf
              # this will allow - running testimage cmd: bitbake core-image-minimal -c testimage
-             echo IMAGE_CLASSES += \"testimage\" >> conf/local.conf
+             echo IMAGE_CLASSES += \"testimage\" >> conf/local.conf             
              bitbake-layers add-layer ../meta-openembedded/meta-oe
              bitbake-layers add-layer ../meta-openembedded/meta-python
              bitbake-layers add-layer ../meta-openembedded/meta-networking
