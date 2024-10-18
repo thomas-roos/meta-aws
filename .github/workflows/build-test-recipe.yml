@@ -67,7 +67,9 @@ jobs:
           git clone git://git.yoctoproject.org/poky --single-branch  ${{ github.workspace }}/poky -b ${{ needs.changed.outputs.release }}
       - name: Get changed Recipes or defaults
         id: recipes
-        run: |                  
+        run: |
+          echo diff:
+          echo ${{ needs.changed.outputs.diff }}
           if [ -z "${{ needs.changed.outputs.diff }}" ]; then     
             echo "No changed recipes, adding everything with a ptest to test, build"          
             THINGS_TO_EXCLUDE="! -name aws-lc* ! -name neo-ai-tv* ! -name corretto-17-bin* ! -name corretto-21-bin* ! -name corretto-8-bin* ! -name firecracker-bin* ! -name jailer-bin* ! -name amazon-kvs-producer-sdk-c* ! -name  aws-cli-v2*"
@@ -79,6 +81,7 @@ jobs:
             echo "Changed recipes"
             export RECIPES=$( echo "${{ needs.changed.outputs.diff }}" | tr ' ' '\n' | grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
           fi
+          echo RECIPES to build:
           echo "$RECIPES"
           echo "recipes=$( echo "$RECIPES" )" >> $GITHUB_OUTPUT  
       - name: Run build
@@ -113,7 +116,7 @@ jobs:
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-             bitbake ${{ steps.recipes.recipes }} -k | tee -a $MACHINE-build.log
+             bitbake ${{ recipes.recipes }} -k | tee -a $MACHINE-build.log
              test -e $MACHINE-build.log && ! grep -A3 " failed"  $MACHINE-build.log
              test -e $MACHINE-build.log && ! grep -A3 " ERROR:"  $MACHINE-build.log'
       - name: Save ${{ matrix.machine }}-build.log
@@ -128,7 +131,7 @@ jobs:
              cd  ${{ github.workspace }}
              source poky/oe-init-build-env build            
              # PUT = package under test
-             for recipe in ${{ steps.recipes.recipes }}; do PUT+="${recipe}-ptest "; done
+             for recipe in ${{ recipes.recipes }}; do PUT+="${recipe}-ptest "; done
              echo IMAGE_INSTALL:append = \" ptest-runner ssh ${PUT}\" >> conf/local.conf    
              export SSTATE_DIR=/sstate-cache 
              export DL_DIR=/downloads
