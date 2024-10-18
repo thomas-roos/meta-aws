@@ -7,7 +7,7 @@ on:
       - '**.bbappend'
       - '**.inc'
 jobs:
-  changed-recipes:
+  changed:
     name: Get changed recipes
     runs-on: ubuntu-latest
     outputs:
@@ -42,9 +42,7 @@ jobs:
           echo "release=${RELEASE:-master}" >> $GITHUB_OUTPUT  
   build-test:
     name: Build, Test ${{ matrix.machine }} ${{ needs.changed-recipes.outputs.release }}
-    needs: changed-recipes
-    outputs:
-      recipes: ${{ steps.diff.recipes.recipes }}
+    needs: changed
     strategy:
       fail-fast: false
       matrix:
@@ -76,7 +74,7 @@ jobs:
             if [ ${{ matrix.machine }} == "qemuarm" ]; then
               THINGS_TO_EXCLUDE+="! -name amazon-kvs-webrtc-sdk*"
             fi
-            RECIPES=$(find . -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
+            RECIPES=$(find meta-aws/ -name *.bb -type f \( ${THINGS_TO_EXCLUDE} \) -print | xargs grep -l 'inherit.*ptest.*'| sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')                    
           else
             echo "Changed recipes"
             RECIPES=$( echo "${{ needs.changed-recipes.outputs.diff }}" |  grep '\.bb.*$' | sed 's!.*/!!' | sed 's!.bb!!' | sed 's!_.*!!' | sort | uniq | sed -z $'s/\\\n/ /g')
@@ -114,7 +112,7 @@ jobs:
              export DL_DIR=/downloads
              export MACHINE=${{ matrix.machine }}
              export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS SSTATE_DIR DL_DIR" 
-             bitbake ${{ needs.build-test.recipes.recipes }} -k | tee -a $MACHINE-build.log
+             bitbake ${{ steps.recipes.recipes }} -k | tee -a $MACHINE-build.log
              test -e $MACHINE-build.log && ! grep -A3 " failed"  $MACHINE-build.log
              test -e $MACHINE-build.log && ! grep -A3 " ERROR:"  $MACHINE-build.log'
       - name: Save ${{ matrix.machine }}-build.log
@@ -129,7 +127,7 @@ jobs:
              cd  ${{ github.workspace }}
              source poky/oe-init-build-env build            
              # PUT = package under test
-             for recipe in ${{ needs.build-test.recipes.recipes }}; do PUT+="${recipe}-ptest "; done
+             for recipe in ${{ steps.recipes.recipes }}; do PUT+="${recipe}-ptest "; done
              echo IMAGE_INSTALL:append = \" ptest-runner ssh ${PUT}\" >> conf/local.conf    
              export SSTATE_DIR=/sstate-cache 
              export DL_DIR=/downloads
