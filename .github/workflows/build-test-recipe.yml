@@ -20,9 +20,10 @@ jobs:
         # See https://github.community/t/check-pushed-file-changes-with-git-diff-tree-in-github-actions/17220/10
         if [ $GITHUB_BASE_REF ]; then
           # Pull Request
-          git fetch origin $GITHUB_BASE_REF --depth=1
+          git fetch origin ${{ github.base_ref }} ${{ github.event.pull_request.head.ref }}
+          FORK_POINT=$( git show-branch --merge-base "origin/${{ github.base_ref }}" "origin/${{ github.event.pull_request.head.ref }}" )
           LATEST_COMMIT_IN_PR=${{ github.event.pull_request.head.sha }}
-          export DIFF=$( git diff --name-only origin/$GITHUB_BASE_REF $LATEST_COMMIT_IN_PR )
+          export DIFF=$( git diff --name-only $FORK_POINT $LATEST_COMMIT_IN_PR )
           echo "Diff between origin/$GITHUB_BASE_REF and $GITHUB_SHA"
         else
           # Push
