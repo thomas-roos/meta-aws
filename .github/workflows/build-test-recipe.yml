@@ -31,6 +31,7 @@ jobs:
           export DIFF=$( git diff --name-only ${{ github.event.before }} $GITHUB_SHA )
           echo "Diff between ${{ github.event.before }} and $GITHUB_SHA"
         fi
+        echo bla
         echo "$DIFF"
         echo "diff=$( echo "$DIFF" | tr '\n' ' ' )" >> $GITHUB_OUTPUT
     - name: get yocto release name
