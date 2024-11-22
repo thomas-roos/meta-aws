@@ -1,10 +1,8 @@
 name: auto-recipe-update
-
 on:
   schedule:
     - cron: '0 1 * * 2-5'
   workflow_dispatch:
-
 jobs:
   update:
     name: Recipe Update
@@ -31,6 +29,7 @@ jobs:
         with:
           path: ci
           repository: 'aws4embeddedlinux/meta-aws-ci'
+          ref: master
       - name: Install Helper Tool
         run: |
           pip install ci/auto-upgrader
