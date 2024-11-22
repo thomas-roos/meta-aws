@@ -19,13 +19,13 @@ jobs:
           git clone git://git.yoctoproject.org/poky -b ${{ github.ref_name }}
           git clone https://github.com/openembedded/meta-openembedded.git -b ${{ github.ref_name }}
       - name: Clone Our Layer
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}-next
           path: meta-aws
           fetch-depth: 0
       - name: Clone CI Tolls Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ci
           repository: 'aws4embeddedlinux/meta-aws-ci'
@@ -53,7 +53,7 @@ jobs:
         run: |
           upgrader create-pulls --branch-file=../build/branches.txt --repo=${{ github.repository }} --target-branch=${{ github.ref_name }}-next --delay 300
       - name: Publish Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: updated-recipes
           path: |
