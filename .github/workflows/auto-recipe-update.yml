@@ -16,12 +16,12 @@ jobs:
           python3-jinja2 xterm python3-subunit zstd liblz4-tool
           git config --global user.name aws-iot-embedded-linux-ci
           git config --global user.email aws-iot-embedded-linux-ci@users.noreply.github.com
-          git clone git://git.yoctoproject.org/poky -b $GITHUB_REF_NAME
-          git clone https://github.com/openembedded/meta-openembedded.git -b $GITHUB_REF_NAME
+          git clone git://git.yoctoproject.org/poky -b ${{ GITHUB_REF_NAME }}
+          git clone https://github.com/openembedded/meta-openembedded.git -b ${{ GITHUB_REF_NAME }}
       - name: Clone Our Layer
         uses: actions/checkout@v3
         with:
-          ref: $GITHUB_REF_NAME-next
+          ref: ${{ GITHUB_REF_NAME }}-next
           path: meta-aws
           fetch-depth: 0
       - name: Clone CI Tolls Repo
@@ -51,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_CREDENTIAL }}
         run: |
-          upgrader create-pulls --branch-file=../build/branches.txt --repo=${{ github.repository }} --target-branch="$GITHUB_REF_NAME-next" --delay 300
+          upgrader create-pulls --branch-file=../build/branches.txt --repo=${{ github.repository }} --target-branch=${{ GITHUB_REF_NAME }}-next --delay 300
       - name: Publish Artifacts
         uses: actions/upload-artifact@v3
         with:
