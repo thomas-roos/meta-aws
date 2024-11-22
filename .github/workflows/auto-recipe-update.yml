@@ -36,6 +36,9 @@ jobs:
       - name: Run Update
         run: |
           source poky/oe-init-build-env build
+          git -C ../poky status
+          git -C ../meta-openembedded/ status
+          git -C ../meta-aws/ status
           bitbake-layers add-layer ../meta-openembedded/meta-oe
           bitbake-layers add-layer ../meta-openembedded/meta-python
           bitbake-layers add-layer ../meta-openembedded/meta-multimedia
