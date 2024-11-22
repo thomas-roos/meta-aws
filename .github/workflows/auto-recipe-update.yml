@@ -44,7 +44,7 @@ jobs:
           bitbake-layers add-layer ../meta-openembedded/meta-multimedia
           bitbake-layers add-layer ../meta-openembedded/meta-networking
           bitbake-layers add-layer ../meta-aws
-          upgrader update --layer-path ../meta-aws
+          upgrader update --layer-path ../meta-aws --target-branch=${{ github.ref_name }}-next
       - name: Push Result
         working-directory: meta-aws
         run: |
