@@ -20,19 +20,36 @@ jobs:
           for branch in "${branches[@]}"; do
             gh workflow run build-test-recipe.yml --ref $branch
           done
-
+          
       - name: Wait for branch workflows to complete
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sleep 60  # Wait for workflows to start
-
-          for branch in "${branches[@]}"; do
-            while true; do
-              status=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --json status --jq '.[0].status')
-              if [ "$status" = "completed" ]; then
+          branches=("develop" "feature-branch")
+          max_attempts=90  # Maximum 90 min exec time
+          
+          for attempt in $(seq 1 $max_attempts); do
+            all_completed=true
+            for branch in "${branches[@]}"; do
+              status=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --limit 1 --json status --jq '.[0].status')
+              if [ "$status" != "completed" ]; then
+                all_completed=false
                 break
               fi
-              sleep 10
             done
+            
+            if $all_completed; then
+              echo "All branch workflows have completed."
+              break
+            fi
+            
+            if [ $attempt -eq $max_attempts ]; then
+              echo "Timeout waiting for workflows to complete."
+              exit 1
+            fi
+            
+            echo "Waiting for workflows to complete... (Attempt $attempt/$max_attempts)"
+            sleep 60
           done
 
       - name: Report status
