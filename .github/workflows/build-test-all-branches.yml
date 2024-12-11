@@ -91,12 +91,6 @@ jobs:
           echo "Triggered workflows:"
           cat report.md
 
-      - name: Upload report
-        uses: actions/upload-artifact@v3
-        with:
-          name: triggered-workflows-report
-          path: report.md  
-
       - name: Wait for branch workflows to complete
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
