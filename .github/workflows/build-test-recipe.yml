@@ -1,8 +1,6 @@
 name: build-test-recipe
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'
   pull_request:
 jobs:
   changed:
@@ -39,7 +37,7 @@ jobs:
           RELEASE=$(echo "${{ github.ref_name }}" | cut -d- -f1)
         fi
         echo "Determined release: $RELEASE"
-        echo "release=${RELEASE:-master}" >> $GITHUB_OUTPUT
+        echo "release=${RELEASE}" >> $GITHUB_OUTPUT
   build-test:
     name: Build, Test ${{ matrix.machine }} ${{ needs.changed.outputs.release }}
     needs: changed
