@@ -17,9 +17,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           branches=("scarthgap-next" "kirkstone-next" "styhead-next")
+          run_urls=()
           for branch in "${branches[@]}"; do
-            gh workflow run build-test-recipe.yml --ref $branch
+            output=$(gh workflow run build-test-recipe.yml --ref $branch)
+            run_url=$(echo "$output" | grep -oP 'https://github.com/.+/actions/runs/\d+')
+            run_urls+=("$run_url")
+            echo "Triggered workflow for $branch with run URL: $run_url"
           done
+          echo "run_urls=${run_urls[*]}" >> $GITHUB_ENV
           
       - name: Wait for branch workflows to complete
         env:
