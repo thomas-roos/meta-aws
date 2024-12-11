@@ -1,0 +1,44 @@
+name: Build and test all supported branches
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+    
+jobs:
+  trigger-branch-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trigger workflows in other branches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branches=("scarthgap-next" "kirkstone-next" "styhead-next")
+          for branch in "${branches[@]}"; do
+            gh workflow run build-test-recipe.yml --ref $branch
+          done
+
+      - name: Wait for branch workflows to complete
+        run: |
+          sleep 60  # Wait for workflows to start
+
+          for branch in "${branches[@]}"; do
+            while true; do
+              status=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --json status --jq '.[0].status')
+              if [ "$status" = "completed" ]; then
+                break
+              fi
+              sleep 10
+            done
+          done
+
+      - name: Report status
+        run: |
+          echo "All branch workflows have completed."
+          for branch in "${branches[@]}"; do
+            conclusion=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --json conclusion --jq '.[0].conclusion')
+            echo "Branch $branch workflow conclusion: $conclusion"
+          done
