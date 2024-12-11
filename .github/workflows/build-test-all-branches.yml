@@ -17,21 +17,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           branches=("scarthgap-next" "kirkstone-next" "styhead-next")
+          run_ids=()
           for branch in "${branches[@]}"; do
-            gh workflow run build-test-recipe.yml --ref $branch
+            run_id=$(gh workflow run build-test-recipe.yml --ref $branch --json databaseId --jq '.databaseId')
+            run_ids+=("$run_id")
+            echo "Triggered workflow for $branch with run ID: $run_id"
           done
-          
+          echo "run_ids=${run_ids[*]}" >> $GITHUB_ENV
+
       - name: Wait for branch workflows to complete
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          branches=("develop" "feature-branch")
+          IFS=' ' read -ra run_ids <<< "${{ env.run_ids }}"
           max_attempts=90  # Maximum 90 min exec time
           
           for attempt in $(seq 1 $max_attempts); do
             all_completed=true
-            for branch in "${branches[@]}"; do
-              status=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --limit 1 --json status --jq '.[0].status')
+            for run_id in "${run_ids[@]}"; do
+              status=$(gh run view $run_id --json status --jq '.status')
               if [ "$status" != "completed" ]; then
                 all_completed=false
                 break
@@ -53,9 +57,14 @@ jobs:
           done
 
       - name: Report status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "All branch workflows have completed."
-          for branch in "${branches[@]}"; do
-            conclusion=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --json conclusion --jq '.[0].conclusion')
+          IFS=' ' read -ra run_ids <<< "${{ env.run_ids }}"
+          for run_id in "${run_ids[@]}"; do
+            run_info=$(gh run view $run_id --json headBranch,conclusion)
+            branch=$(echo "$run_info" | jq -r '.headBranch')
+            conclusion=$(echo "$run_info" | jq -r '.conclusion')
             echo "Branch $branch workflow conclusion: $conclusion"
           done
