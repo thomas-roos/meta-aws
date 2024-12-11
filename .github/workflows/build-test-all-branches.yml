@@ -28,7 +28,8 @@ jobs:
         run: |
           set -x  # Enable command echo for debugging
           branches=("scarthgap-next" "kirkstone-next" "styhead-next")
-          run_ids=()
+          declare -A run_ids
+          declare -A run_urls
           for branch in "${branches[@]}"; do
             echo "Attempting to trigger workflow for branch: $branch"
             
@@ -45,15 +46,18 @@ jobs:
             if [ -z "$response" ]; then
               echo "Workflow triggered successfully for $branch"
               
-              # Get the run ID of the newly triggered workflow
+              # Get the run ID and URL of the newly triggered workflow
               sleep 5  # Wait a bit for the workflow to start
-              run_id=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --limit 1 --json databaseId --jq '.[0].databaseId')
+              run_info=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --limit 1 --json databaseId,url)
+              run_id=$(echo "$run_info" | jq -r '.[0].databaseId')
+              run_url=$(echo "$run_info" | jq -r '.[0].url')
               
               if [ -n "$run_id" ]; then
-                run_ids+=("$run_id")
+                run_ids["$branch"]="$run_id"
+                run_urls["$branch"]="$run_url"
                 echo "Triggered workflow for $branch with run ID: $run_id"
               else
-                echo "Failed to get run ID for $branch"
+                echo "Failed to get run info for $branch"
               fi
             else
               echo "Error triggering workflow for $branch"
@@ -61,24 +65,24 @@ jobs:
             fi
           done
           
-          if [ ${#run_ids[@]} -eq 0 ]; then
-            echo "No workflows were successfully triggered"
-            exit 1
-          fi
-          
+          # Save run IDs and URLs to files for the next steps
+          echo "$(declare -p run_ids)" > run_ids.txt
+          echo "$(declare -p run_urls)" > run_urls.txt
           echo "run_ids=${run_ids[*]}" >> $GITHUB_ENV
 
       - name: Display triggered workflows
         run: |
+          source run_ids.txt
           source run_urls.txt
           echo "# Triggered Build Test Workflows" > report.md
           echo "" >> report.md
-          echo "| Branch | Workflow Run |" >> report.md
-          echo "|--------|--------------|" >> report.md
+          echo "| Branch | Run ID | Workflow Run |" >> report.md
+          echo "|--------|--------|--------------|" >> report.md
           
-          for branch in "${!run_urls[@]}"; do
+          for branch in "${!run_ids[@]}"; do
+            id="${run_ids[$branch]}"
             url="${run_urls[$branch]}"
-            echo "| $branch | [View Run]($url) |" >> report.md
+            echo "| $branch | $id | [View Run]($url) |" >> report.md
           done
           
           echo "## Triggered Workflows" >> $GITHUB_STEP_SUMMARY
@@ -86,6 +90,12 @@ jobs:
           
           echo "Triggered workflows:"
           cat report.md
+
+      - name: Upload report
+        uses: actions/upload-artifact@v3
+        with:
+          name: triggered-workflows-report
+          path: report.md  
 
       - name: Wait for branch workflows to complete
         env:
