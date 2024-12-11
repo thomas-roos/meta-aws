@@ -17,24 +17,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           branches=("scarthgap-next" "kirkstone-next" "styhead-next")
-          run_ids=()
+          run_urls=()
           for branch in "${branches[@]}"; do
-            run_id=$(gh workflow run build-test-recipe.yml --ref $branch --json databaseId --jq '.databaseId')
-            run_ids+=("$run_id")
-            echo "Triggered workflow for $branch with run ID: $run_id"
+            output=$(gh workflow run build-test-recipe.yml --ref $branch)
+            run_url=$(echo "$output" | grep -oP 'https://github.com/.+/actions/runs/\d+')
+            run_urls+=("$run_url")
+            echo "Triggered workflow for $branch with run URL: $run_url"
           done
-          echo "run_ids=${run_ids[*]}" >> $GITHUB_ENV
+          echo "run_urls=${run_urls[*]}" >> $GITHUB_ENV
 
       - name: Wait for branch workflows to complete
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          IFS=' ' read -ra run_ids <<< "${{ env.run_ids }}"
+          IFS=' ' read -ra run_urls <<< "${{ env.run_urls }}"
           max_attempts=90  # Maximum 90 min exec time
           
           for attempt in $(seq 1 $max_attempts); do
             all_completed=true
-            for run_id in "${run_ids[@]}"; do
+            for run_url in "${run_urls[@]}"; do
+              run_id=$(echo "$run_url" | grep -oP '\d+$')
               status=$(gh run view $run_id --json status --jq '.status')
               if [ "$status" != "completed" ]; then
                 all_completed=false
@@ -61,8 +63,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "All branch workflows have completed."
-          IFS=' ' read -ra run_ids <<< "${{ env.run_ids }}"
-          for run_id in "${run_ids[@]}"; do
+          IFS=' ' read -ra run_urls <<< "${{ env.run_urls }}"
+          for run_url in "${run_urls[@]}"; do
+            run_id=$(echo "$run_url" | grep -oP '\d+$')
             run_info=$(gh run view $run_id --json headBranch,conclusion)
             branch=$(echo "$run_info" | jq -r '.headBranch')
             conclusion=$(echo "$run_info" | jq -r '.conclusion')
