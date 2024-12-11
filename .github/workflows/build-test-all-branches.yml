@@ -68,6 +68,25 @@ jobs:
           
           echo "run_ids=${run_ids[*]}" >> $GITHUB_ENV
 
+      - name: Display triggered workflows
+        run: |
+          source run_urls.txt
+          echo "# Triggered Build Test Workflows" > report.md
+          echo "" >> report.md
+          echo "| Branch | Workflow Run |" >> report.md
+          echo "|--------|--------------|" >> report.md
+          
+          for branch in "${!run_urls[@]}"; do
+            url="${run_urls[$branch]}"
+            echo "| $branch | [View Run]($url) |" >> report.md
+          done
+          
+          echo "## Triggered Workflows" >> $GITHUB_STEP_SUMMARY
+          cat report.md >> $GITHUB_STEP_SUMMARY
+          
+          echo "Triggered workflows:"
+          cat report.md
+
       - name: Wait for branch workflows to complete
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
