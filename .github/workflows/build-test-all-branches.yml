@@ -1,4 +1,4 @@
-name: Build and test all supported branches
+name: trigger build-test in all supported branches
 
 on:
   workflow_dispatch:
@@ -18,48 +18,46 @@ jobs:
         run: |
           set -x  # Enable command echo for debugging
           branches=("scarthgap-next" "kirkstone-next" "styhead-next")
-          run_urls=()
+          run_ids=()
           for branch in "${branches[@]}"; do
             echo "Attempting to trigger workflow for branch: $branch"
             
-            # List workflows to ensure build-test-recipe.yml exists
-            echo "Available workflows:"
-            gh workflow list
+            # Trigger the workflow using the GitHub API directly
+            response=$(curl -sS -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-test-recipe.yml/dispatches" \
+              -d "{\"ref\":\"$branch\"}")
             
-            # Check if the branch exists
-            if ! gh api repos/${{ github.repository }}/branches/$branch &>/dev/null; then
-              echo "Branch $branch does not exist!"
-              continue
-            fi
+            echo "API Response: $response"
             
-            # Attempt to run the workflow
-            output=$(gh workflow run build-test-recipe.yml --ref $branch 2>&1)
-            exit_code=$?
-            echo "Command output:"
-            echo "$output"
-            echo "Exit code: $exit_code"
-            
-            if [ $exit_code -ne 0 ]; then
+            # Check if the workflow was triggered successfully
+            if [ -z "$response" ]; then
+              echo "Workflow triggered successfully for $branch"
+              
+              # Get the run ID of the newly triggered workflow
+              sleep 5  # Wait a bit for the workflow to start
+              run_id=$(gh run list --workflow=build-test-recipe.yml --branch=$branch --limit 1 --json databaseId --jq '.[0].databaseId')
+              
+              if [ -n "$run_id" ]; then
+                run_ids+=("$run_id")
+                echo "Triggered workflow for $branch with run ID: $run_id"
+              else
+                echo "Failed to get run ID for $branch"
+              fi
+            else
               echo "Error triggering workflow for $branch"
-              continue
+              echo "API Response: $response"
             fi
-            
-            run_url=$(echo "$output" | grep -oP 'https://github.com/.+/actions/runs/\d+')
-            if [ -z "$run_url" ]; then
-              echo "Failed to extract run URL for $branch"
-              continue
-            fi
-            
-            run_urls+=("$run_url")
-            echo "Triggered workflow for $branch with run URL: $run_url"
           done
-    
-          if [ ${#run_urls[@]} -eq 0 ]; then
+          
+          if [ ${#run_ids[@]} -eq 0 ]; then
             echo "No workflows were successfully triggered"
             exit 1
           fi
-    
-          echo "run_urls=${run_urls[*]}" >> $GITHUB_ENV
+          
+          echo "run_ids=${run_ids[*]}" >> $GITHUB_ENV
+
 
       - name: Wait for branch workflows to complete
         env:
