@@ -16,28 +16,51 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -x  # Enable command echo for debugging
           branches=("scarthgap-next" "kirkstone-next" "styhead-next")
           run_urls=()
           for branch in "${branches[@]}"; do
             echo "Attempting to trigger workflow for branch: $branch"
-            output=$(gh workflow run build-test-recipe.yml --ref $branch 2>&1)
-            if [ $? -ne 0 ]; then
-              echo "Error triggering workflow for $branch:"
-              echo "$output"
-              exit 1
+            
+            # List workflows to ensure build-test-recipe.yml exists
+            echo "Available workflows:"
+            gh workflow list
+            
+            # Check if the branch exists
+            if ! gh api repos/${{ github.repository }}/branches/$branch &>/dev/null; then
+              echo "Branch $branch does not exist!"
+              continue
             fi
-          run_url=$(echo "$output" | grep -oP 'https://github.com/.+/actions/runs/\d+')
-          if [ -z "$run_url" ]; then
-            echo "Failed to extract run URL for $branch"
-            echo "Full output:"
+            
+            # Attempt to run the workflow
+            output=$(gh workflow run build-test-recipe.yml --ref $branch 2>&1)
+            exit_code=$?
+            echo "Command output:"
             echo "$output"
+            echo "Exit code: $exit_code"
+            
+            if [ $exit_code -ne 0 ]; then
+              echo "Error triggering workflow for $branch"
+              continue
+            fi
+            
+            run_url=$(echo "$output" | grep -oP 'https://github.com/.+/actions/runs/\d+')
+            if [ -z "$run_url" ]; then
+              echo "Failed to extract run URL for $branch"
+              continue
+            fi
+            
+            run_urls+=("$run_url")
+            echo "Triggered workflow for $branch with run URL: $run_url"
+          done
+    
+          if [ ${#run_urls[@]} -eq 0 ]; then
+            echo "No workflows were successfully triggered"
             exit 1
           fi
-          run_urls+=("$run_url")
-          echo "Triggered workflow for $branch with run URL: $run_url"
-          done
+    
           echo "run_urls=${run_urls[*]}" >> $GITHUB_ENV
-               
+
       - name: Wait for branch workflows to complete
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
