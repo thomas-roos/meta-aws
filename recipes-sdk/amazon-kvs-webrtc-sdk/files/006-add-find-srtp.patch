@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Add FindSRTP.cmake to find system libsrtp
+
+Add a CMake module to find the system libsrtp library.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMake/Modules/FindSRTP.cmake | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+ create mode 100644 CMake/Modules/FindSRTP.cmake
+
+diff --git a/CMake/Modules/FindSRTP.cmake b/CMake/Modules/FindSRTP.cmake
+new file mode 100644
+index 0000000..1234567
+--- /dev/null
++++ b/CMake/Modules/FindSRTP.cmake
+@@ -0,0 +1,25 @@
++# - Try to find libsrtp
++# Once done this will define
++#  SRTP_FOUND - System has libsrtp
++#  SRTP_INCLUDE_DIRS - The libsrtp include directories
++#  SRTP_LIBRARIES - The libraries needed to use libsrtp
++
++find_package(PkgConfig QUIET)
++pkg_check_modules(PC_SRTP QUIET libsrtp2)
++
++find_path(SRTP_INCLUDE_DIR
++          NAMES srtp.h
++          HINTS ${PC_SRTP_INCLUDEDIR} ${PC_SRTP_INCLUDE_DIRS})
++
++find_library(SRTP_LIBRARY
++             NAMES srtp2
++             HINTS ${PC_SRTP_LIBDIR} ${PC_SRTP_LIBRARY_DIRS})
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(SRTP DEFAULT_MSG SRTP_LIBRARY SRTP_INCLUDE_DIR)
++
++mark_as_advanced(SRTP_INCLUDE_DIR SRTP_LIBRARY)
++
++set(SRTP_LIBRARIES ${SRTP_LIBRARY})
++set(SRTP_INCLUDE_DIRS ${SRTP_INCLUDE_DIR})
++

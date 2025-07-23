@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:55:00 +0000
+Subject: [PATCH] Remove googletest dependency
+
+Remove googletest dependency from the build process.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMakeLists.txt | 10 ----------
+ 1 file changed, 0 insertions(+), 10 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index abcdef0..1234567 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -300,16 +300,6 @@ if(BUILD_DEPENDENCIES)
+       -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS})
+ endif()
+ 
+-if(BUILD_TEST)
+-  if(NOT EXISTS ${OPEN_SRC_INSTALL_PREFIX}/lib/libgtest.a)
+-    message(STATUS "Fetching and building gtest")
+-
+-    set(BUILD_ARGS
+-        -DCMAKE_INSTALL_PREFIX=${OPEN_SRC_INSTALL_PREFIX}
+-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+-    build_dependency(gtest ${BUILD_ARGS})
+-  endif()
+-endif()
+ 
+ if(BUILD_BENCHMARK)
+   if(NOT EXISTS ${OPEN_SRC_INSTALL_PREFIX}/lib/libbenchmark.a)

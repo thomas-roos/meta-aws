@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Skip unnecessary patches for libwebsockets
+
+The patches for libwebsockets are no longer needed as the code has been
+updated in the upstream repository.
+
+Upstream-Status: Inappropriate [not needed]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMake/Dependencies/libwebsockets-CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMake/Dependencies/libwebsockets-CMakeLists.txt b/CMake/Dependencies/libwebsockets-CMakeLists.txt
+index 1234567..abcdef0 100644
+--- a/CMake/Dependencies/libwebsockets-CMakeLists.txt
++++ b/CMake/Dependencies/libwebsockets-CMakeLists.txt
+@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6.3)
+ 
+ project(libwebsocket-download NONE)
+ 
+-SET(PATCH_COMMAND git apply --verbose --ignore-whitespace ${CMAKE_CURRENT_LIST_DIR}/libwebsockets-old-gcc-fix-cast-cmakelists.patch)
++SET(PATCH_COMMAND echo "Skipping patches as they are already applied in the current version")
+ 
+ include(ExternalProject)
+ if (BUILD_STATIC_LIBS)

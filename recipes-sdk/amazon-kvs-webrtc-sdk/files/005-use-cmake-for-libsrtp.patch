@@ -1,0 +1,94 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Use CMake for libsrtp
+
+The autotools build for libsrtp is failing due to cross-compilation issues.
+This patch modifies the build to use CMake instead.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMake/Dependencies/libsrtp-CMakeLists.txt | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/CMake/Dependencies/libsrtp-CMakeLists.txt b/CMake/Dependencies/libsrtp-CMakeLists.txt
+index 1234567..abcdef0 100644
+--- a/CMake/Dependencies/libsrtp-CMakeLists.txt
++++ b/CMake/Dependencies/libsrtp-CMakeLists.txt
+@@ -2,31 +2,31 @@ cmake_minimum_required(VERSION 3.6.3)
+ 
+ project(libsrtp-download LANGUAGES C)
+ 
+-SET(CONFIGURE_COMMAND "")
+-
+-# There is known bug in libsrtp where cross compiling using configure on ARM fails. Do not
+-# enable this option if cross compilng on ARM
+-# Check https://github.com/cisco/libsrtp/pull/496
+-
+-
+-if(BUILD_LIBSRTP_DESTINATION_PLATFORM STREQUAL BUILD_LIBSRTP_HOST_PLATFORM)
+-
+-  if(UNIX OR APPLE)
+-
+-    SET(CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/build/src/project_libsrtp/configure CC=${CMAKE_C_COMPILER})
+-
+-    if (DEFINED CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT STREQUAL "")
+-      if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+-        SET(KVS_CFLAGS "-I${CMAKE_OSX_SYSROOT}/usr/include -Wno-error=implicit-function-declaration")
+-        SET(CONFIGURE_COMMAND ${CONFIGURE_COMMAND} CFLAGS=${KVS_CFLAGS} LDFLAGS=-L${CMAKE_OSX_SYSROOT}/usr/lib)
+-      endif()
+-    endif()
+-
+-    if (USE_OPENSSL)
+-      SET(CONFIGURE_COMMAND ${CONFIGURE_COMMAND} --prefix=${OPEN_SRC_INSTALL_PREFIX} --enable-openssl --with-openssl-dir=${OPENSSL_DIR})
+-    else()
+-      SET(CONFIGURE_COMMAND ${CONFIGURE_COMMAND} --prefix=${OPEN_SRC_INSTALL_PREFIX})
+-    endif()
++# Use CMake instead of autotools for libsrtp
++
++# Set CMake arguments for libsrtp
++set(LIBSRTP_CMAKE_ARGS
++    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
++    -DCMAKE_INSTALL_PREFIX:STRING=${OPEN_SRC_INSTALL_PREFIX}
++    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
++    -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
++    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
++    -DBUILD_SHARED_LIBS=OFF
++    -DENABLE_OPENSSL=${USE_OPENSSL}
++)
++
++if (USE_OPENSSL)
++  set(LIBSRTP_CMAKE_ARGS
++      ${LIBSRTP_CMAKE_ARGS}
++      -DOPENSSL_ROOT_DIR=${OPENSSL_DIR}
++      -DOPENSSL_INCLUDE_DIR=${OPENSSL_INCLUDE_DIR}
++      -DOPENSSL_LIBRARIES=${OPENSSL_LIBRARIES}
++  )
++endif()
+ 
++if (DEFINED CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT STREQUAL "")
++  if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
++    set(LIBSRTP_CMAKE_ARGS ${LIBSRTP_CMAKE_ARGS} -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT})
++  endif()
+ endif()
+ 
+ if (BUILD_STATIC_LIBS OR WIN32)
+@@ -45,10 +45,10 @@ message(STATUS "CONFIGURE_COMMAND is ${CONFIGURE_COMMAND}")
+ include(ExternalProject)
+ ExternalProject_Add(project_libsrtp
+     SOURCE_DIR        ${CMAKE_SOURCE_DIR}/../../../open-source/libsrtp
+-    PREFIX            ${CMAKE_CURRENT_BINARY_DIR}/build
+-    CMAKE_ARGS        ${CMAKE_ARGS}
+-    BUILD_IN_SOURCE   0
+-    CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
+-    BUILD_COMMAND     make
+-    INSTALL_COMMAND   make install
++    BINARY_DIR        ${CMAKE_CURRENT_BINARY_DIR}/build
++    CMAKE_ARGS        ${LIBSRTP_CMAKE_ARGS}
++    BUILD_ALWAYS      TRUE
++    INSTALL_DIR       ${OPEN_SRC_INSTALL_PREFIX}
++    BUILD_BYPRODUCTS  ${OPEN_SRC_INSTALL_PREFIX}/lib/libsrtp2.a
+     TEST_COMMAND      ""
+ )

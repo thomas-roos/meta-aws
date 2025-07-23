@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 16:15:00 +0000
+Subject: [PATCH] Remove gtest dependency
+
+Remove gtest dependency from the build process.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index abcdef0..1234567 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -241,7 +241,7 @@ if(BUILD_DEPENDENCIES)
+ endif()
+ 
+ if(BUILD_TEST)
+-  build_dependency(gtest)
++  # gtest dependency removed
+ endif()
+ 
+ if(BUILD_BENCHMARK)

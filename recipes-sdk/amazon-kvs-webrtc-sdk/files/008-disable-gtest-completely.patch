@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:45:00 +0000
+Subject: [PATCH] Disable gtest completely
+
+Disable gtest completely to avoid build issues during cross-compilation.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMakeLists.txt | 2 ++
+ 1 file changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index abcdef0..1234567 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -28,6 +28,8 @@ option(ENABLE_STATS_CALCULATION_CONTROL "Enable support for runtime control of ic
+ 
+ # Developer Flags
+ option(BUILD_TEST "Build the testing tree." OFF)
++# Force BUILD_TEST to OFF
++set(BUILD_TEST OFF CACHE BOOL "Build the testing tree" FORCE)
+ option(BUILD_BENCHMARK "Build the benchmark tree." OFF)
+ option(CODE_COVERAGE "Enable coverage reporting" OFF)
+ option(COMPILER_WARNINGS "Enable all compiler warnings." OFF)

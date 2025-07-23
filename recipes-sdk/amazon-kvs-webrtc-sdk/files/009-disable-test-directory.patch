@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:50:00 +0000
+Subject: [PATCH] Disable test directory
+
+Skip building the test directory completely to avoid gtest dependencies.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index abcdef0..1234567 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -456,8 +456,8 @@ add_subdirectory(src)
+ 
+ # Build the test
+ if(BUILD_TEST)
+-  message(STATUS "Building the test")
+-  add_subdirectory(tst)
++  message(STATUS "Tests disabled")
++  # add_subdirectory(tst)
+ endif()

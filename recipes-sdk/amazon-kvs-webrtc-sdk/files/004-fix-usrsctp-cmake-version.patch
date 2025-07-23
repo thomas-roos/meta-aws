@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Fix usrsctp CMake version requirement
+
+The usrsctp CMakeLists.txt file is using an outdated CMake minimum version
+requirement that's no longer supported in the current CMake version.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMake/Dependencies/libusrsctp-CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMake/Dependencies/libusrsctp-CMakeLists.txt b/CMake/Dependencies/libusrsctp-CMakeLists.txt
+index 556..abc 100644
+--- a/CMake/Dependencies/libusrsctp-CMakeLists.txt
++++ b/CMake/Dependencies/libusrsctp-CMakeLists.txt
+@@ -10,6 +10,7 @@ ExternalProject_Add(project_libusrsctp
+                       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                       "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS} -fPIC"
+                       -Dsctp_werror=0
++                      -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+     BUILD_ALWAYS      TRUE
+     TEST_COMMAND      ""
+ )

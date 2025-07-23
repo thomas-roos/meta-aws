@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Use system libsrtp instead of building from source
+
+The build is failing because it can't find the libsrtp source directory.
+This patch modifies the CMakeLists.txt to use the system libsrtp instead
+of building from source.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMakeLists.txt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1234567..abcdef0 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -235,7 +235,7 @@ if(BUILD_DEPENDENCIES)
+       -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS})
+ 
+   build_dependency(websockets ${BUILD_ARGS})
+-
++  
+   set(BUILD_ARGS
+       -DBUILD_STATIC_LIBS=${BUILD_STATIC_LIBS}
+       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+@@ -245,7 +245,7 @@ if(BUILD_DEPENDENCIES)
+       -DUSE_MBEDTLS=${USE_MBEDTLS}
+       -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS})
+ 
+-  build_dependency(srtp ${BUILD_ARGS})
++  # Use system libsrtp instead of building from source
+ 
+   set(BUILD_ARGS
+       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+@@ -290,7 +290,7 @@ if (USE_OPENSSL)
+ else()
+   find_package(MbedTLS REQUIRED)
+   set(OPEN_SRC_INCLUDE_DIRS ${OPEN_SRC_INCLUDE_DIRS} ${MBEDTLS_INCLUDE_DIRS})
+-endif()
++endif()

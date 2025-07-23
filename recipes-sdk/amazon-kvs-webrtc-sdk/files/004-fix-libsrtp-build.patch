@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Fix libsrtp build path
+
+The libsrtp configure script is not found in the expected location.
+This patch fixes the path to the configure script.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMake/Dependencies/libsrtp-CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMake/Dependencies/libsrtp-CMakeLists.txt b/CMake/Dependencies/libsrtp-CMakeLists.txt
+index 1234567..abcdef0 100644
+--- a/CMake/Dependencies/libsrtp-CMakeLists.txt
++++ b/CMake/Dependencies/libsrtp-CMakeLists.txt
+@@ -11,7 +11,7 @@ if(BUILD_LIBSRTP_DESTINATION_PLATFORM STREQUAL BUILD_LIBSRTP_HOST_PLATFORM)
+ 
+   if(UNIX OR APPLE)
+ 
+-    SET(CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/build/src/project_libsrtp/configure CC=${CMAKE_C_COMPILER})
++    SET(CONFIGURE_COMMAND cd ${CMAKE_SOURCE_DIR}/../../../open-source/libsrtp && ./configure CC=${CMAKE_C_COMPILER})
+ 
+     if (DEFINED CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT STREQUAL "")
+       if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")

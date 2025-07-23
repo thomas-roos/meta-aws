@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Disable minimal examples in libwebsockets
+
+The minimal examples in libwebsockets are causing build failures due to
+CMake errors. This patch disables building the minimal examples.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMake/Dependencies/libwebsockets-CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/CMake/Dependencies/libwebsockets-CMakeLists.txt b/CMake/Dependencies/libwebsockets-CMakeLists.txt
+index 1234567..abcdef0 100644
+--- a/CMake/Dependencies/libwebsockets-CMakeLists.txt
++++ b/CMake/Dependencies/libwebsockets-CMakeLists.txt
+@@ -54,6 +54,7 @@ ExternalProject_Add(project_libwebsockets
+         -DLWS_WITH_THREADPOOL=${LWS_WITH_THREADPOOL}
+         -DLWS_WITH_ZLIB=0
+         -DLWS_HAVE_EVENTFD=0
++        -DLWS_WITH_MINIMAL_EXAMPLES=0
+         -DLWS_EXT_PTHREAD_INCLUDE_DIR=${LWS_EXT_PTHREAD_INCLUDE_DIR}
+         -DLWS_EXT_PTHREAD_LIBRARIES=${LWS_EXT_PTHREAD_LIBRARIES}
+         -DLWS_OPENSSL_INCLUDE_DIRS=${LWS_OPENSSL_INCLUDE_DIRS}

@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AWS Q <aws-q@amazon.com>
+Date: Wed, 23 Jul 2025 15:00:00 +0000
+Subject: [PATCH] Use system libsrtp
+
+Use the system libsrtp instead of building it from source.
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: AWS Q <aws-q@amazon.com>
+---
+ CMakeLists.txt | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1234567..abcdef0 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -232,7 +232,13 @@ if (BUILD_DEPENDENCIES)
+   build_dependency(websockets ${BUILD_ARGS})
+ endif()
+ 
+-build_dependency(srtp ${BUILD_ARGS})
++# Use system libsrtp instead of building from source
++if (USE_SYSTEM_LIBSRTP)
++  find_package(PkgConfig REQUIRED)
++  pkg_check_modules(SRTP REQUIRED libsrtp2)
++else()
++  build_dependency(srtp ${BUILD_ARGS})
++endif()
+ 
+ if (BUILD_DEPENDENCIES)
+   build_dependency(usrsctp ${BUILD_ARGS})
