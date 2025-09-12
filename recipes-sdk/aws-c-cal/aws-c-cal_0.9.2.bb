@@ -1,6 +1,5 @@
 SUMMARY = "AWS C Cal"
 DESCRIPTION = "AWS Crypto Abstraction Layer: Cross-Platform, C99 wrapper for cryptography primitives."
-
 HOMEPAGE = "https://github.com/awslabs/aws-c-cal"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=34400b68072d710fecd0a2940a0d1658"
