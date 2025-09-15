@@ -1,6 +1,6 @@
 [Unit]
 Description=Greengrass Lite Image-Provided Component Auto-Deployment
-After=greengrass-lite.target ggl.gg_post-fleetprovisioning.service
+After=greengrass-lite.target
 
 [Service]
 Type=oneshot
