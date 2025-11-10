@@ -9,7 +9,7 @@ permissions:
 jobs:
   update:
     name: Recipe Update
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Setup Yocto Dependencies
         run: |
