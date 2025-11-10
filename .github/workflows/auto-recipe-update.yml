@@ -48,7 +48,7 @@ jobs:
                     }
                   },
                   "branch": "${{ github.ref_name }}-next",
-                  "rev": "HEAD"
+                  "rev": "${{ github.ref_name }}-next"
                 },
                 "path": "meta-aws"
               }
