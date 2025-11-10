@@ -60,7 +60,7 @@ jobs:
         run: |
           bitbake/bin/bitbake-setup init --non-interactive \
             --source-overrides meta-aws-override.json \
-            ./meta-aws/poky-with-meta-aws.conf.json \
+            ${{ github.workspace }}/meta-aws/.github/workflows/poky-with-meta-aws.conf.json \
             poky distro/poky machine/qemux86-64
       - name: Run Update
         run: |
