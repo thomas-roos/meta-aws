@@ -37,6 +37,7 @@ SRC_URI = "\
     ${@'' if d.getVar('DISABLE_FETCHCONTENT') else 'git://github.com/aws/SigV4-for-AWS-IoT-embedded-sdk.git;protocol=https;branch=main;name=sigv4;destsuffix=${S}/thirdparty/aws_sigv4'} \
     ${@'' if d.getVar('DISABLE_FETCHCONTENT') else 'git://github.com/aws-greengrass/aws-greengrass-sdk-lite.git;protocol=https;branch=main;name=sdk;destsuffix=${S}/thirdparty/ggl_sdk'} \
     file://001-disable_strip.patch \
+    file://002-add-riscv64-support.patch \
     file://greengrass-lite.yaml \
     file://run-ptest \
     ${@bb.utils.contains('PACKAGECONFIG','localdeployment','file://ggl.local-deployment.service','',d)} \
