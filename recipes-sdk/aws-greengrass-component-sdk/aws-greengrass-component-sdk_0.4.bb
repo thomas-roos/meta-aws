@@ -6,48 +6,52 @@ HOMEPAGE = "https://github.com/aws-greengrass/aws-greengrass-component-sdk"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=34400b68072d710fecd0a2940a0d1658"
 
-# RISC-V 32-bit not supported
-COMPATIBLE_MACHINE:riscv32 = "null"
+PV = "0.4.0+git${SRCPV}"
 
-SRCREV = "1e54e70d4000ebf71572ba09e422d09666652787"
+SRCREV = "4ee9ad4ef5ae5a190a5076e7a823510f9ee2a433"
 SRC_URI = "git://github.com/aws-greengrass/aws-greengrass-component-sdk.git;protocol=https;branch=main \
-           file://0001-Fix-GCC-15-compatibility-for-MapIterator.patch \
-           file://0002-Remove-hardcoded-clang-compiler.patch \
+           file://0001-Add-bindgen-to-build.rs.patch \
+           file://0003-Build-gg-sdk-as-cdylib.patch \
            file://0003-Downgrade-Rust-edition-to-2021.patch \
-           file://0004-Downgrade-Cargo-lock-to-version-3.patch \
+           file://0004-Update-Cargo.lock-for-bindgen.patch \
            file://0005-Replace-unstable-Rust-features.patch \
 "
 
+SRC_URI:append:arm = " file://0002-Fix-timespec-types-for-32-bit-platforms.patch"
+SRC_URI:append:armeb = " file://0002-Fix-timespec-types-for-32-bit-platforms.patch"
+SRC_URI:append:x86 = " file://0002-Fix-timespec-types-for-32-bit-platforms.patch"
+
 S = "${WORKDIR}/git"
 
-# Patch 0004 has minor fuzz but applies correctly
-ERROR_QA:remove = "patch-fuzz"
+DEPENDS = "clang-native"
 
 inherit cmake ptest cargo cargo-update-recipe-crates
 
 CARGO_SRC_DIR = "rust"
+
+# Bindgen will regenerate c.rs at build time
+do_configure:prepend() {
+    rm -f ${S}/rust/src/c.rs
+}
+
+# Set LIBCLANG_PATH for bindgen
+export LIBCLANG_PATH = "${STAGING_LIBDIR_NATIVE}"
+
+# Set bindgen to use target sysroot
+export BINDGEN_EXTRA_CLANG_ARGS = "--sysroot=${STAGING_DIR_TARGET} ${TARGET_CC_ARCH}"
 
 EXTRA_OECMAKE = " \
     -DCMAKE_BUILD_TYPE=MinSizeRel \
     -DBUILD_SHARED_LIBS=ON \
     -DBUILD_SAMPLES=ON \
     -DENABLE_WERROR=OFF \
-    -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
 "
-
-TARGET_CXXFLAGS:remove = "-flto=auto -ffat-lto-objects"
-TARGET_LDFLAGS:remove = "-flto=auto -ffat-lto-objects"
 
 # Override the random seed to use a reproducible path
 TARGET_CXXFLAGS:append = " -frandom-seed=${TARGET_DBGSRC_DIR}"
 
-# Disable Rust - requires unstable features not in Rust 1.75.0
 PACKAGECONFIG ??= "rust"
 PACKAGECONFIG[rust] = ",,,"
-
-# Disable Rust on 32-bit ARM due to FFI compatibility issues
-PACKAGECONFIG:armv7a = ""
-PACKAGECONFIG:armv7ve = ""
 
 # default is stripped, we wanna do this by yocto
 EXTRA_OECMAKE:append = " -DCMAKE_BUILD_TYPE=RelWithDebInfo"
@@ -105,12 +109,23 @@ do_install() {
             done
         fi
 
-        # Install Rust crate source for other recipes to use
-        install -d ${D}${datadir}/cargo/registry/gg-sdk
-        cp -r ${S}/rust/* ${D}${datadir}/cargo/registry/gg-sdk/
-        cp -r ${S}/src ${D}${datadir}/cargo/registry/
-        cp -r ${S}/include ${D}${datadir}/cargo/registry/
-        cp -r ${S}/priv_include ${D}${datadir}/cargo/registry/
+        # Install Rust shared library for runtime
+        install -d ${D}${libdir}
+        install -m 0755 ${B}/target/${CARGO_TARGET_SUBDIR}/libgg_sdk.so ${D}${libdir}/
+
+        # Install Rust rlib for compile-time
+        install -d ${D}${libdir}/rustlib/${RUST_HOST_SYS}/lib
+        install -m 0644 ${B}/target/${CARGO_TARGET_SUBDIR}/libgg_sdk.rlib ${D}${libdir}/rustlib/${RUST_HOST_SYS}/lib/
+        if [ -f ${B}/target/${CARGO_TARGET_SUBDIR}/deps/libgg_sdk-*.rmeta ]; then
+            install -m 0644 ${B}/target/${CARGO_TARGET_SUBDIR}/deps/libgg_sdk-*.rmeta ${D}${libdir}/rustlib/${RUST_HOST_SYS}/lib/
+        fi
+
+        # Install C static library
+        install -m 0644 ${B}/target/${CARGO_TARGET_SUBDIR}/build/gg-sdk-*/out/libgg-sdk.a ${D}${libdir}/
+
+        # Install headers
+        install -d ${D}${includedir}/gg
+        cp -r ${S}/include/gg/* ${D}${includedir}/gg/
     fi
 
     if [ ! -d "${D}${includedir}/gg" ]; then
@@ -137,7 +152,7 @@ do_install() {
 }
 
 do_install_ptest() {
-    install -m 0755 ${WORKDIR}/run-ptest ${D}${PTEST_PATH}/
+    install -m 0755 ${WORKDIR}/sources/run-ptest ${D}${PTEST_PATH}/
 
     if [ -d "${B}/bin" ]; then
         for sample in ${B}/bin/*; do
@@ -165,16 +180,20 @@ do_install_ptest() {
     rm -rf ${D}${PTEST_PATH}/.debug
 }
 
+INSANE_SKIP:${PN} += "already-stripped"
+INSANE_SKIP:${PN}-dev += "buildpaths"
+
 PACKAGES = "${PN} ${PN}-dev ${PN}-staticdev ${PN}-doc ${PN}-ptest ${PN}-dbg"
 
 FILES:${PN} = " \
     ${libdir}/libgg-sdk.so* \
+    ${libdir}/libgg_sdk.so* \
     ${bindir}/* \
 "
 
 FILES:${PN}-dev = " \
     ${includedir}/gg/* \
-    ${datadir}/cargo/* \
+    ${libdir}/rustlib/* \
 "
 
 FILES:${PN}-staticdev = " \

@@ -267,132 +267,11 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
                  .cast::<ListRef>()
                  .as_ref()
                  .unwrap_unchecked()
---- a/rust/src/c.rs	2025-11-25 17:01:33.592914015 +0000
-+++ b/rust/src/c.rs	2025-11-25 17:03:07.762529669 +0000
-@@ -144,70 +144,42 @@
- const _: () = {
-     ["Size of GgBuffer"][::core::mem::size_of::<GgBuffer>() - 16usize];
-     ["Alignment of GgBuffer"][::core::mem::align_of::<GgBuffer>() - 8usize];
--    ["Offset of field: GgBuffer::data"]
--        [::core::mem::offset_of!(GgBuffer, data) - 0usize];
--    ["Offset of field: GgBuffer::len"]
--        [::core::mem::offset_of!(GgBuffer, len) - 8usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgBufList"][::core::mem::size_of::<GgBufList>() - 16usize];
-     ["Alignment of GgBufList"][::core::mem::align_of::<GgBufList>() - 8usize];
--    ["Offset of field: GgBufList::bufs"]
--        [::core::mem::offset_of!(GgBufList, bufs) - 0usize];
--    ["Offset of field: GgBufList::len"]
--        [::core::mem::offset_of!(GgBufList, len) - 8usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgObject"][::core::mem::size_of::<GgObject>() - 11usize];
-     ["Alignment of GgObject"][::core::mem::align_of::<GgObject>() - 1usize];
--    ["Offset of field: GgObject::_private"]
--        [::core::mem::offset_of!(GgObject, _private) - 0usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgList"][::core::mem::size_of::<GgList>() - 16usize];
-     ["Alignment of GgList"][::core::mem::align_of::<GgList>() - 8usize];
--    ["Offset of field: GgList::items"]
--        [::core::mem::offset_of!(GgList, items) - 0usize];
--    ["Offset of field: GgList::len"]
--        [::core::mem::offset_of!(GgList, len) - 8usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgKV"][::core::mem::size_of::<GgKV>() - 21usize];
-     ["Alignment of GgKV"][::core::mem::align_of::<GgKV>() - 1usize];
--    ["Offset of field: GgKV::_private"]
--        [::core::mem::offset_of!(GgKV, _private) - 0usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgMap"][::core::mem::size_of::<GgMap>() - 16usize];
-     ["Alignment of GgMap"][::core::mem::align_of::<GgMap>() - 8usize];
--    ["Offset of field: GgMap::pairs"]
--        [::core::mem::offset_of!(GgMap, pairs) - 0usize];
--    ["Offset of field: GgMap::len"]
--        [::core::mem::offset_of!(GgMap, len) - 8usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgArena"][::core::mem::size_of::<GgArena>() - 16usize];
-     ["Alignment of GgArena"][::core::mem::align_of::<GgArena>() - 8usize];
--    ["Offset of field: GgArena::mem"]
--        [::core::mem::offset_of!(GgArena, mem) - 0usize];
--    ["Offset of field: GgArena::capacity"]
--        [::core::mem::offset_of!(GgArena, capacity) - 8usize];
--    ["Offset of field: GgArena::index"]
--        [::core::mem::offset_of!(GgArena, index) - 12usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgArenaState"][::core::mem::size_of::<GgArenaState>() - 4usize];
-     ["Alignment of GgArenaState"]
-         [::core::mem::align_of::<GgArenaState>() - 4usize];
--    ["Offset of field: GgArenaState::index"]
--        [::core::mem::offset_of!(GgArenaState, index) - 0usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-@@ -215,8 +187,6 @@
-         [::core::mem::size_of::<GgIpcSubscriptionHandle>() - 4usize];
-     ["Alignment of GgIpcSubscriptionHandle"]
-         [::core::mem::align_of::<GgIpcSubscriptionHandle>() - 4usize];
--    ["Offset of field: GgIpcSubscriptionHandle::val"]
--        [::core::mem::offset_of!(GgIpcSubscriptionHandle, val) - 0usize];
- };
- pub const GgPresence_GG_PRESENCE_REQUIRED: GgPresence__bindgen_ty_1 =
-     GgPresence__bindgen_ty_1::GG_PRESENCE_REQUIRED;
-@@ -228,8 +198,6 @@
- const _: () = {
-     ["Size of GgPresence"][::core::mem::size_of::<GgPresence>() - 4usize];
-     ["Alignment of GgPresence"][::core::mem::align_of::<GgPresence>() - 4usize];
--    ["Offset of field: GgPresence::val"]
--        [::core::mem::offset_of!(GgPresence, val) - 0usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-@@ -237,33 +205,17 @@
-         [::core::mem::size_of::<GgMapSchemaEntry>() - 32usize];
-     ["Alignment of GgMapSchemaEntry"]
-         [::core::mem::align_of::<GgMapSchemaEntry>() - 8usize];
--    ["Offset of field: GgMapSchemaEntry::key"]
--        [::core::mem::offset_of!(GgMapSchemaEntry, key) - 0usize];
--    ["Offset of field: GgMapSchemaEntry::required"]
--        [::core::mem::offset_of!(GgMapSchemaEntry, required) - 16usize];
--    ["Offset of field: GgMapSchemaEntry::type_"]
--        [::core::mem::offset_of!(GgMapSchemaEntry, type_) - 20usize];
--    ["Offset of field: GgMapSchemaEntry::value"]
--        [::core::mem::offset_of!(GgMapSchemaEntry, value) - 24usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of GgMapSchema"][::core::mem::size_of::<GgMapSchema>() - 16usize];
-     ["Alignment of GgMapSchema"]
-         [::core::mem::align_of::<GgMapSchema>() - 8usize];
--    ["Offset of field: GgMapSchema::entries"]
--        [::core::mem::offset_of!(GgMapSchema, entries) - 0usize];
--    ["Offset of field: GgMapSchema::entry_count"]
--        [::core::mem::offset_of!(GgMapSchema, entry_count) - 8usize];
- };
- #[allow(clippy::unnecessary_operation, clippy::identity_op)]
- const _: () = {
-     ["Size of timespec"][::core::mem::size_of::<timespec>() - 16usize];
-     ["Alignment of timespec"][::core::mem::align_of::<timespec>() - 8usize];
--    ["Offset of field: timespec::tv_sec"]
--        [::core::mem::offset_of!(timespec, tv_sec) - 0usize];
--    ["Offset of field: timespec::tv_nsec"]
--        [::core::mem::offset_of!(timespec, tv_nsec) - 8usize];
- };
- #[repr(u32)]
- #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-@@ -382,107 +334,107 @@
+--- a/rust/src/c.rs	2025-11-27 13:00:00.000000000 +0000
++++ b/rust/src/c.rs	2025-11-27 13:00:00.000000000 +0000
+--- a/rust/src/c.rs
++++ b/rust/src/c.rs
+@@ -263,107 +263,107 @@ impl Default for GgMapSchema {
          }
      }
  }
@@ -528,7 +407,7 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
      pub fn gg_arena_resize_last(
          arena: *mut GgArena,
          ptr: *const ::core::ffi::c_void,
-@@ -490,64 +442,64 @@
+@@ -371,64 +371,64 @@ unsafe extern "C" {
          size: usize,
      ) -> GgError;
  }
@@ -605,7 +484,7 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
      pub fn ggipc_subscribe_to_topic(
          topic: GgBuffer,
          callback: GgIpcSubscribeToTopicCallback,
-@@ -555,21 +507,21 @@
+@@ -436,21 +436,21 @@ unsafe extern "C" {
          handle: *mut GgIpcSubscriptionHandle,
      ) -> GgError;
  }
@@ -630,7 +509,7 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
      pub fn ggipc_subscribe_to_iot_core(
          topic_filter: GgBuffer,
          qos: u8,
-@@ -578,7 +530,7 @@
+@@ -459,7 +459,7 @@ unsafe extern "C" {
          handle: *mut GgIpcSubscriptionHandle,
      ) -> GgError;
  }
@@ -639,7 +518,7 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
      pub fn ggipc_get_config(
          key_path: GgBufList,
          component_name: *const GgBuffer,
-@@ -586,27 +538,27 @@
+@@ -467,27 +467,27 @@ unsafe extern "C" {
          value: *mut GgObject,
      ) -> GgError;
  }
@@ -672,7 +551,7 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
      pub fn ggipc_subscribe_to_configuration_update(
          component_name: *const GgBuffer,
          key_path: GgBufList,
-@@ -615,7 +567,7 @@
+@@ -496,7 +496,7 @@ unsafe extern "C" {
          handle: *mut GgIpcSubscriptionHandle,
      ) -> GgError;
  }
@@ -681,7 +560,7 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
      pub fn ggipc_call(
          operation: GgBuffer,
          service_model_type: GgBuffer,
-@@ -625,7 +577,7 @@
+@@ -506,7 +506,7 @@ unsafe extern "C" {
          response_ctx: *mut ::core::ffi::c_void,
      ) -> GgError;
  }
@@ -690,7 +569,7 @@ Signed-off-by: Yocto Builder <builder@yoctoproject.org>
      pub fn ggipc_subscribe(
          operation: GgBuffer,
          service_model_type: GgBuffer,
-@@ -639,35 +591,35 @@
+@@ -520,35 +520,35 @@ unsafe extern "C" {
          sub_handle: *mut GgIpcSubscriptionHandle,
      ) -> GgError;
  }

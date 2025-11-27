@@ -4,10 +4,6 @@ HOMEPAGE = "https://github.com/aws/meta-aws"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-# Rust not supported on 32-bit ARM due to FFI compatibility issues
-COMPATIBLE_MACHINE:armv7a = "null"
-COMPATIBLE_MACHINE:armv7ve = "null"
-
 # COMPONENT_NAME and COMPONENT_VERSION will be read from component-recipe.yaml
 # They can be overridden here if needed:
 # COMPONENT_NAME = "com.example.HelloWorldRust"
@@ -30,17 +26,7 @@ S = "${WORKDIR}"
 inherit cargo cargo-update-recipe-crates ptest
 inherit_defer ${@'greengrass-lite-component' if d.getVar('GREENGRASS_VARIANT') == 'lite' else 'greengrass-component'}
 
-require ${BPN}-crates.inc
-
-EXTRA_OECARGO_PATHS = "${RECIPE_SYSROOT}${datadir}/cargo/registry/gg-sdk"
-
-do_configure:prepend() {
-    # Copy gg-sdk and C sources to match build.rs expectations
-    cp -r ${RECIPE_SYSROOT}${datadir}/cargo/registry/gg-sdk ${S}/
-    cp -r ${RECIPE_SYSROOT}${datadir}/cargo/registry/src ${S}/gg-sdk/
-    cp -r ${RECIPE_SYSROOT}${datadir}/cargo/registry/include ${S}/gg-sdk/
-    cp -r ${RECIPE_SYSROOT}${datadir}/cargo/registry/priv_include ${S}/gg-sdk/
-}
+export RUSTFLAGS:append = " --extern gg_sdk=${STAGING_LIBDIR}/rustlib/${RUST_HOST_SYS}/lib/libgg_sdk.rlib -L ${STAGING_LIBDIR}"
 
 do_install() {
     install -d ${D}${bindir}
